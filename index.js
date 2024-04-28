@@ -8,8 +8,6 @@ const floatMenuCls = "float-menu";
 
 const editorElm = document.querySelector(".editor");
 
-// 存储选区文本
-let copyContent = '';
 
 // 存储菜单状态：鼠标按下有内容、点击时显示菜单
 const menuStatus = {
@@ -39,10 +37,14 @@ function setMenuElmPosition(menuElm, x, y) {
   if (selection.isCollapsed) {
     menuElm.style.left = (rect.right || x) + "px";
     menuElm.style.top = (rect.bottom || y) + "px";
-  } else {
+  } else if (selection.anchorOffset < selection.focusOffset) {
     menuElm.style.left = rect.left + window.scrollX + rect.width / 2 - menuElmWidth + "px";
     menuElm.style.top = rect.bottom + window.scrollY + 10 + "px";
+  } else if (selection.anchorOffset > selection.focusOffset) {
+    menuElm.style.left = rect.left + window.scrollX + rect.width / 2 - menuElmWidth + "px";
+    menuElm.style.top = rect.top + window.scrollY - menuElm.offsetHeight - 10 + "px";
   }
+  // console.log(rect.height);
 }
 
 
@@ -54,10 +56,10 @@ function showFloatMenu(x, y) {
     if (!floatMenuElm) {
       floatMenuElm = document.createElement("div");
       floatMenuElm.classList.add(floatMenuCls);
-      menuItems.forEach((menuItem, index) => {
+      menuItems.forEach((menuItem) => {
         const itemElm = document.createElement("div");
         itemElm.appendChild(document.createTextNode(menuItem.text));
-        itemElm.setAttribute('data-index', menuItems[index].type);
+        itemElm.setAttribute('data-type', menuItem.type);
         itemElm.classList.add("menu-item");
         floatMenuElm.appendChild(itemElm);
       });
@@ -72,18 +74,14 @@ function showFloatMenu(x, y) {
   setMenuElmPosition(menuElm, x, y);
 
   // 注册菜单点击事件
-  menuElm.querySelectorAll('.menu-item').forEach(item => {
-    if (!item.dataset.eventAttached) {
-      item.addEventListener('click', handleMenuClick);
-      item.dataset.eventAttached = true;
-    }
-  });
+  menuElm.addEventListener('click', handleMenuClick);
+
 }
 
 // 菜单点击事件回调函数
 function handleMenuClick(event) {
-  const item = event.currentTarget;
-  const index = item.getAttribute('data-index');
+  const item = event.target;
+  const index = item.getAttribute('data-type');
   switch (index) {
     case 'copy': handleCopy();
       break;
@@ -106,10 +104,7 @@ function hideFloatMenu() {
     floatMenuElm.classList.remove("show");
     // 移除事件
     if (!isMenuShow()) {
-      floatMenuElm.querySelectorAll('.menu-item[data-eventAttached="true"]').forEach(item => {
-        item.removeEventListener('click', handleMenuClick);
-        item.removeAttribute('data-eventAttached');
-      })
+      floatMenuElm.removeEventListener('click', handleMenuClick);
     }
   }
 }
@@ -138,16 +133,27 @@ editorElm.addEventListener("mouseup", function handleMouseup(event) {
   const selectionText = getSelectionText();
   menuStatus.showFloatMenuOnClick = !hasSelectionContentOnMousedown && selectionText.length !== 0;
   menuStatus.isDragOnDragStart = false;
-  copyContent = selectionText;
-  localStorage.setItem('content', copyContent);
+  sessionStorage.setItem('content', selectionText);
 });
 
 
 // 点击事件--->显示菜单
-editorElm.addEventListener("click", function handleClick(event) {
+editorElm.addEventListener("click", async function handleClick(event) {
   const { showFloatMenuOnClick } = menuStatus;
   if (showFloatMenuOnClick) {
     showFloatMenu(event.pageX, event.pageY);
+    // 解除禁用
+    const floatMenuElm = getFloatElm();
+    const menuElms = floatMenuElm.children;
+    const clipboardText = await navigator.clipboard.readText();
+    Array.from(menuElms).filter(menuElm => {
+      const type = menuElm.getAttribute('data-type') === "paste";
+      if (!type) {
+        menuElm.classList.remove('disabled');
+      } else {
+        clipboardText ? menuElm.classList.remove('disabled') : menuElm.classList.add('disabled');
+      }
+    })
   } else {
     hideFloatMenu();
   }
@@ -184,9 +190,23 @@ editorElm.addEventListener('dragend', function handleDragend(event) {
 })
 
 // 右键显示菜单
-editorElm.addEventListener('contextmenu', function handleContextmenu(event) {
+editorElm.addEventListener('contextmenu', async function handleContextmenu(event) {
   event.preventDefault();
   showFloatMenu(event.pageX, event.pageY);
+  // 禁用部分按钮
+  const floatMenuElm = getFloatElm();
+  const menuElms = floatMenuElm.children;
+  const clipboardText = await navigator.clipboard.readText();
+  if (getSelectionText().trim().length <= 0) {
+    Array.from(menuElms).filter(menuElm => {
+      const type = menuElm.getAttribute('data-type') === "paste";
+      if (!type) {
+        menuElm.classList.add('disabled');
+      } else {
+        clipboardText ? menuElm.classList.remove('disabled') : menuElm.classList.add('disabled');
+      }
+    })
+  }
 })
 
 /**
@@ -194,8 +214,7 @@ editorElm.addEventListener('contextmenu', function handleContextmenu(event) {
  */
 function handleCopy() {
   // 将内容写入剪切板
-  navigator.clipboard.writeText(copyContent);
-  console.log('复制');
+  navigator.clipboard.writeText(sessionStorage.getItem('content'));
 }
 
 /**
@@ -221,8 +240,6 @@ async function handlePaste() {
   range.collapse(false); // 将 Range 折叠到其边界的端点
   selection.removeAllRanges();
   selection.addRange(range);
-  console.log('粘贴');
-
 }
 
 /**
@@ -245,8 +262,6 @@ function handleCut() {
   } else {
     console.log('没有选区内容');
   }
-  console.log('剪切');
-
 }
 
 
@@ -255,20 +270,19 @@ function handleCut() {
  */
 function handleTranslate() {
   const translateArea = document.querySelector('.translateArea');
-  // 获取剪切板的内容
-  const pasteContent = localStorage.getItem('content');
+  // 获取选区内容
+  const selectContent = sessionStorage.getItem('content');
   // 设置默认翻译的语言
   translate.language.setDefaultTo('english');
   // 隐藏语言下拉菜单
   translate.selectLanguageTag.show = false;
   // 翻译选区内容
-  if (pasteContent) {
-    translate.request.translateText(pasteContent, function (data) {
+  if (selectContent) {
+    translate.request.translateText(selectContent, function (data) {
       translateArea.textContent = data.text[0];
       console.log(data);
     })
   } else {
     console.log('不存在内容');
   }
-  console.log('翻译');
 }

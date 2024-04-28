@@ -4,6 +4,7 @@
   border-radius: 5px;
   padding: 10px;
 }
+
 .float-menu {
   position: absolute;
   display: none;
@@ -34,10 +35,14 @@
   background-color: lightgrey;
 }
 
-.translateArea{
+.translateArea {
   max-width: 820px;
   height: 300px;
   border: 1px solid rgb(130, 198, 223);
   border-radius: 5px;
   margin-top: 20px;
+}
+
+.disabled {
+  pointer-events: none;
 }
