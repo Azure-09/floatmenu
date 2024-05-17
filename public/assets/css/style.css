@@ -1,0 +1,59 @@
+body {
+    background-color: #efeeee;
+}
+
+.root {
+    display: grid;
+    gap: 20px;
+    grid-template-columns: 600px 600px;
+    grid-template-rows: 500px 500px;
+    justify-content: center;
+    margin-top: 100px;
+}
+
+.editor,
+.translateArea {
+    border-radius: 15px;
+    padding: 25px;
+    text-align: justify;
+    background-color: #fff;
+    box-shadow: rgba(149, 157, 165, 0.2) 0px 8px 24px;
+    outline: none;
+}
+
+.float-menu {
+    position: absolute;
+    display: none;
+    top: -999px;
+    left: -999px;
+    column-gap: 8px;
+    background-color: white;
+    border: solid 1px gray;
+    border-radius: 5px;
+    padding: 5px;
+}
+
+.float-menu.show {
+    display: flex;
+}
+
+.menu-item {
+    width: 50px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 5px;
+    cursor: auto;
+    user-select: none;
+}
+
+.menu-item:hover {
+    background-color: lightgrey;
+}
+
+
+
+.disabled {
+    pointer-events: none;
+}

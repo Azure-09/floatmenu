@@ -1,0 +1,23 @@
+{
+  "name": "floatmenu-vue3",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "vite build",
+    "dev": "vite"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@ant-design/icons-vue": "^7.0.1",
+    "@vitejs/plugin-vue": "^5.0.4",
+    "ant-design-vue": "^4.2.1",
+    "vite": "^5.2.11",
+    "vue": "^3.4.27"
+  },
+  "devDependencies": {
+    "unplugin-vue-components": "^0.27.0"
+  }
+}
