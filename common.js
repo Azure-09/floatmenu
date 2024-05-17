@@ -43,11 +43,12 @@ class SelectionTool {
  */
 class MenuItem {
 
-    constructor(config) {
-        const { type, text, onClick } = config;
+    constructor([menuItem, hideFloatMenu]) {
+        const { type, text, onClick } = menuItem;
         this.type = type;
         this.text = text;
         this.onClick = onClick;
+        this.hideFloatMenu = hideFloatMenu;
     }
 
     createItems() {
@@ -57,7 +58,7 @@ class MenuItem {
         itemElm.classList.add("menu-item");
         itemElm.addEventListener('click', () => {
             this.onClick();
-            new Menu().hideFloatMenu();
+            this.hideFloatMenu();
         });
         return itemElm;
     }
@@ -83,31 +84,32 @@ class Menu {
     }
 
     // 设置菜单位置
-    setMenuElmPosition(menuElm, x, y) {
+    setMenuElmPosition(menuElm) {
         const selection = SelectionTool.getSelection();
+        const { isCollapsed, anchorOffset, focusOffset } = selection;
         const rect = SelectionTool.getBoundingClientRect();
         const menuElmWidth = menuElm.offsetWidth / 2;
         // 判断选区的位置
-        if (selection.isCollapsed) {
-            menuElm.style.left = (rect.right || x) + "px";
-            menuElm.style.top = (rect.bottom || y) + "px";
-        } else if (selection.anchorOffset < selection.focusOffset) {
+        if (isCollapsed) {
+            menuElm.style.left = (rect.right || setCursorPosInEditableElement(menuElm, 0)) + "px";
+            menuElm.style.top = (rect.bottom || setCursorPosInEditableElement(menuElm, 0)) + "px";
+        } else if (anchorOffset < focusOffset) {
             menuElm.style.left = rect.left + window.scrollX + rect.width / 2 - menuElmWidth + "px";
             menuElm.style.top = rect.bottom + window.scrollY + 10 + "px";
-        } else if (selection.anchorOffset > selection.focusOffset) {
+        } else if (anchorOffset > focusOffset) {
             menuElm.style.left = rect.left + window.scrollX + rect.width / 2 - menuElmWidth + "px";
             menuElm.style.top = rect.top + window.scrollY - menuElm.offsetHeight - 10 + "px";
         }
     }
 
     // 创建菜单
-    createFloatMenu() {
+    createFloatMenu(menuItems) {
         let floatMenuElm = this.getFloatElm();
         if (!floatMenuElm) {
             floatMenuElm = document.createElement("div");
             floatMenuElm.classList.add(this.floatMenuCls);
-            this.menuItems.forEach((menuItem) => {
-                const itemElm = new MenuItem(menuItem);
+            menuItems.forEach((menuItem) => {
+                const itemElm = new MenuItem([menuItem, this.hideFloatMenu.bind(this)]);
                 floatMenuElm.appendChild(itemElm.createItems());
             });
             document.body.appendChild(floatMenuElm);
@@ -120,13 +122,14 @@ class Menu {
         return document.querySelector("." + this.floatMenuCls);
     }
 
+
     // 显示菜单
-    showFloatMenu(x, y) {
-        const menuElm = this.createFloatMenu();
+    showFloatMenu(menuItems) {
+        const menuElm = this.createFloatMenu(menuItems);
         menuElm.classList.add("show");
 
         // 设置菜单位置
-        this.setMenuElmPosition(menuElm, x, y);
+        this.setMenuElmPosition(menuElm);
     }
 
     // 隐藏菜单
@@ -144,6 +147,7 @@ class Menu {
     }
 
 }
+const menu = new Menu();
 
 const menuItems = [
     { type: 'copy', text: '复制', onClick: () => handleCopy() },
@@ -151,8 +155,6 @@ const menuItems = [
     { type: 'cut', text: '剪切', onClick: () => handleCut() },
     { type: 'translate', text: '翻译', onClick: () => handleTranslate() },
 ]
-
-const menu = new Menu(menuItems);
 
 function handleCopy() {
     ClipboardTool.writeText(SelectionTool.getSelectionText());
@@ -260,7 +262,7 @@ function handleMouseup(event) {
 async function handleClick(event) {
     const { showFloatMenuOnClick } = menu.menuStatus;
     if (showFloatMenuOnClick) {
-        menu.showFloatMenu(event.pageX, event.pageY);
+        menu.showFloatMenu(menuItems);
         // 解除禁用
         const floatMenuElm = menu.getFloatElm();
         const menuElms = floatMenuElm.children;
@@ -297,13 +299,13 @@ function handleDragstart(event) {
 function handleDragend(event) {
     const { shouldShowMenuOnDragend } = menu.menuStatus;
     if (shouldShowMenuOnDragend) {
-        menu.showFloatMenu(event.pageX, event.pageY);
+        menu.showFloatMenu(menuItems);
     }
 }
 
 async function handleContextmenu(event) {
     event.preventDefault();
-    menu.showFloatMenu(event.pageX, event.pageY);
+    menu.showFloatMenu(menuItems);
     // 禁用部分按钮
     const floatMenuElm = menu.getFloatElm();
     const menuElms = floatMenuElm.children;
@@ -318,4 +320,15 @@ async function handleContextmenu(event) {
             }
         })
     }
+}
+
+// 当没有选取任何文本时，设置光标位置到菜单位置
+function setCursorPosInEditableElement(element, pos) {
+    let range;
+    range = document.body.createTextRange();
+    range.moveToElementText(element);
+    range.collapse(false);
+    range.moveStart('character', pos);
+    range.moveEnd('character', pos);
+    range.select();
 }
