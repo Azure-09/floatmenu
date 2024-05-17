@@ -1,128 +1,65 @@
 /**
- * 菜单选项
+ * 剪切板工具：提供写入剪切板、读取剪切板API
+ */
+class ClipboardTool {
+
+    static writeText(text) {
+        navigator.clipboard.writeText(text);
+    }
+
+    // static async readText() {
+    //     navigator.clipboard.readText().then(res=>{
+    //         var text = res;
+    //     });
+    //     console.log(text);
+    // }
+}
+
+/**
+ * 选区工具：提供获取选区位置、获取选区图形、更新光标位置API
+ */
+class SelectionTool {
+    static getSelectionText() {
+        return this.getSelection().toString();
+    }
+
+    static getBoundingClientRect() {
+        return this.getSelection().getRangeAt(0).getBoundingClientRect();
+    }
+
+    static updatePointPosition(range, selection) {
+        range.collapse(false); // 将 Range 折叠到其边界的端点
+        selection.removeAllRanges();
+        selection.addRange(range);
+    }
+
+    static getSelection() {
+        return window.getSelection();
+    }
+}
+
+/**
+ * 生成菜单选项
  */
 class MenuItem {
 
     constructor(config) {
-        const { type, text } = config;
+        const { type, text, onClick } = config;
         this.type = type;
         this.text = text;
+        this.onClick = onClick;
     }
 
-    handleClick() { }
-}
-
-/**
- * 复制功能
- */
-class Copy extends MenuItem {
-
-    constructor() {
-        super({ type: "copy", text: "复制" });
-    }
-
-    handleClick() {
-        this.handleCopy();
-    }
-
-    handleCopy() {
-        navigator.clipboard.writeText(getSelectionText());
-    }
-}
-
-/**
- * 粘贴功能
- */
-class Paste extends MenuItem {
-
-    constructor() {
-        super({ type: "paste", text: "粘贴" });
-    }
-
-    handleClick() {
-        this.handlePaste();
-    }
-
-    async handlePaste() {
-        // 获取剪切板的内容
-        const pasteContent = await navigator.clipboard.readText();
-        // 获取选区内容
-        const selectionText = getSelectionText();
-        const selection = window.getSelection();
-        const range = selection.getRangeAt(0);
-        // 判断选区
-        if (selectionText.trim().length > 0) {
-            // 清除选区的内容
-            range.deleteContents();
-        }
-        // 创建虚拟节点
-        const textNode = document.createTextNode(pasteContent);
-        // 将文本插入到光标位置
-        range.insertNode(textNode);
-        updatePointPosition(range, selection);
-    }
-}
-
-/**
- * 剪切功能
- */
-class Cut extends MenuItem {
-
-    constructor() {
-        super({ type: "cut", text: "剪切" });
-    }
-
-    handleClick() {
-        this.handleCut();
-    }
-
-    handleCut() {
-        // 获取选区文本
-        const selectionText = getSelectionText();
-        const selection = window.getSelection();
-        // 将选区文本写入剪切板
-        navigator.clipboard.writeText(selectionText);
-        // 判断是否有选区内容
-        if (selectionText.trim().length > 0) {
-            const range = selection.getRangeAt(0);
-            range.deleteContents();
-            updatePointPosition(range, selection);
-        } else {
-            console.log('没有选区内容');
-        }
-    }
-}
-
-/**
- * 翻译功能
- */
-class Translate extends MenuItem {
-
-    constructor() {
-        super({ type: "translate", text: "翻译" });
-    }
-
-    handleClick() {
-        this.handleTranslate();
-    }
-
-    handleTranslate() {
-        const translateArea = document.querySelector('.translateArea');
-        // 获取选区内容
-        const selectContent = getSelectionText();
-        // 设置默认翻译的语言
-        translate.language.setDefaultTo('english');
-        // 隐藏语言下拉菜单
-        translate.selectLanguageTag.show = false;
-        // 翻译选区内容
-        if (selectContent) {
-            translate.request.translateText(selectContent, function (data) {
-                translateArea.textContent = data.text[0];
-                console.log(data);
-            })
-        } else {
-            console.log('不存在内容');
-        }
+    createItems() {
+        const itemElm = document.createElement("div");
+        itemElm.appendChild(document.createTextNode(this.text));
+        itemElm.setAttribute('data-type', this.type);
+        itemElm.classList.add("menu-item");
+        itemElm.addEventListener('click', () => {
+            this.onClick();
+            new Menu().hideFloatMenu();
+        });
+        return itemElm;
     }
 }
 
@@ -142,19 +79,13 @@ class Menu {
     floatMenuCls = "float-menu";
 
     constructor(menuItems) {
-        this.menuItems = menuItems.map(item => {
-            return {
-                type: item.type,
-                text: item.text,
-                onClick: item.handleClick.bind(item)
-            }
-        })
+        this.menuItems = menuItems;
     }
 
     // 设置菜单位置
     setMenuElmPosition(menuElm, x, y) {
-        const selection = window.getSelection();
-        const rect = selection.getRangeAt(0).getBoundingClientRect();
+        const selection = SelectionTool.getSelection();
+        const rect = SelectionTool.getBoundingClientRect();
         const menuElmWidth = menuElm.offsetWidth / 2;
         // 判断选区的位置
         if (selection.isCollapsed) {
@@ -176,15 +107,8 @@ class Menu {
             floatMenuElm = document.createElement("div");
             floatMenuElm.classList.add(this.floatMenuCls);
             this.menuItems.forEach((menuItem) => {
-                const itemElm = document.createElement("div");
-                itemElm.appendChild(document.createTextNode(menuItem.text));
-                itemElm.setAttribute('data-type', menuItem.type);
-                itemElm.classList.add("menu-item");
-                itemElm.addEventListener('click', () => {
-                    menuItem.onClick();
-                    this.hideFloatMenu();
-                });
-                floatMenuElm.appendChild(itemElm);
+                const itemElm = new MenuItem(menuItem);
+                floatMenuElm.appendChild(itemElm.createItems());
             });
             document.body.appendChild(floatMenuElm);
         }
@@ -221,11 +145,72 @@ class Menu {
 
 }
 
-// 初始化
-const menuItems = [new Copy(), new Paste(), new Cut(), new Translate()];
-
+const menuItems = [
+    { type: 'copy', text: '复制', onClick: () => handleCopy() },
+    { type: 'paste', text: '粘贴', onClick: () => handlePaste() },
+    { type: 'cut', text: '剪切', onClick: () => handleCut() },
+    { type: 'translate', text: '翻译', onClick: () => handleTranslate() },
+]
 
 const menu = new Menu(menuItems);
+
+function handleCopy() {
+    ClipboardTool.writeText(SelectionTool.getSelectionText());
+}
+
+async function handlePaste() {
+    // 获取剪切板的内容
+    const pasteContent = await navigator.clipboard.readText();
+    // 获取选区内容
+    const selectionText = SelectionTool.getSelectionText();
+    const selection = SelectionTool.getSelection();
+    const range = selection.getRangeAt(0);
+    // 判断选区
+    if (selectionText.trim().length > 0) {
+        // 清除选区的内容
+        range.deleteContents();
+    }
+    // 创建虚拟节点
+    const textNode = document.createTextNode(pasteContent);
+    // 将文本插入到光标位置
+    range.insertNode(textNode);
+    SelectionTool.updatePointPosition(range, selection);
+}
+
+function handleCut() {
+    // 获取选区文本
+    const selectionText = SelectionTool.getSelectionText();
+    const selection = SelectionTool.getSelection();
+    // 将选区文本写入剪切板
+    ClipboardTool.writeText(selectionText);
+    // 判断是否有选区内容
+    if (selectionText.trim().length > 0) {
+        const range = selection.getRangeAt(0);
+        range.deleteContents();
+        SelectionTool.updatePointPosition(range, selection);
+    } else {
+        console.log('没有选区内容');
+    }
+}
+
+function handleTranslate() {
+    const translateArea = document.querySelector('.translateArea');
+    // 获取选区内容
+    const selectContent = SelectionTool.getSelectionText();
+    // 设置默认翻译的语言
+    translate.language.setDefaultTo('english');
+    // 隐藏语言下拉菜单
+    translate.selectLanguageTag.show = false;
+    // 翻译选区内容
+    if (selectContent) {
+        translate.request.translateText(selectContent, function (data) {
+            translateArea.textContent = data.text[0];
+            // console.log(data);
+        })
+    } else {
+        console.log('不存在内容');
+    }
+}
 
 
 
@@ -261,13 +246,13 @@ document.addEventListener("selectionchange", handleSelectionChange);
 function handleMousedown(event) {
     // 鼠标按下事件完成后，这时是空选区，修改选区文本状态
     setTimeout(() => {
-        menu.menuStatus.hasSelectionContentOnMousedown = getSelectionText().length > 0;
+        menu.menuStatus.hasSelectionContentOnMousedown = SelectionTool.getSelectionText().length > 0;
     }, 0);
 }
 
 function handleMouseup(event) {
     const { hasSelectionContentOnMousedown } = menu.menuStatus;
-    const selectionText = getSelectionText();
+    const selectionText = SelectionTool.getSelectionText();
     menu.menuStatus.showFloatMenuOnClick = !hasSelectionContentOnMousedown && selectionText.length !== 0;
     menu.menuStatus.isDragOnDragStart = false;
 }
@@ -294,7 +279,7 @@ async function handleClick(event) {
 }
 
 function handleSelectionChange(event) {
-    const selectionText = getSelectionText();
+    const selectionText = SelectionTool.getSelectionText();
     if (!selectionText) {
         menu.hideFloatMenu();
     }
@@ -323,7 +308,7 @@ async function handleContextmenu(event) {
     const floatMenuElm = menu.getFloatElm();
     const menuElms = floatMenuElm.children;
     const clipboardText = await navigator.clipboard.readText();
-    if (getSelectionText().trim().length <= 0) {
+    if (SelectionTool.getSelectionText().trim().length <= 0) {
         Array.from(menuElms).filter(menuElm => {
             const type = menuElm.getAttribute('data-type') === "paste";
             if (!type) {
@@ -333,20 +318,4 @@ async function handleContextmenu(event) {
             }
         })
     }
-}
-
-/**
- * 工具函数
- */
-// 获取选区文本
-function getSelectionText() {
-    const selection = window.getSelection();
-    return selection.toString();
-}
-
-// 保持光标位置在插入文本之后(重新设置选区)
-function updatePointPosition(range, selection) {
-    range.collapse(false); // 将 Range 折叠到其边界的端点
-    selection.removeAllRanges();
-    selection.addRange(range);
 }
