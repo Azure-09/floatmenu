@@ -6,14 +6,125 @@ class MenuItem {
     floatMenuCls = "float-menu";
 
     constructor(config) {
-        const { type, text, onClick } = config;
+        const { type, text } = config;
         this.type = type;
         this.text = text;
-        this.onClick = onClick;
+    }
+
+    handleClick() { }
+}
+
+/**
+ * 复制功能
+ */
+class Copy extends MenuItem {
+
+    constructor() {
+        super({ type: "copy", text: "复制" });
     }
 
     handleClick() {
-        this.onClick();
+        this.handleCopy();
+    }
+
+    handleCopy() {
+        navigator.clipboard.writeText(getSelectionText());
+    }
+}
+
+/**
+ * 粘贴功能
+ */
+class Paste extends MenuItem {
+
+    constructor() {
+        super({ type: "paste", text: "粘贴" });
+    }
+
+    handleClick() {
+        this.handlePaste();
+    }
+
+    async handlePaste() {
+        // 获取剪切板的内容
+        const pasteContent = await navigator.clipboard.readText();
+        // 获取选区内容
+        const selectionText = getSelectionText();
+        const selection = window.getSelection();
+        const range = selection.getRangeAt(0);
+        // 判断选区
+        if (selectionText.trim().length > 0) {
+            // 清除选区的内容
+            range.deleteContents();
+        }
+        // 创建虚拟节点
+        const textNode = document.createTextNode(pasteContent);
+        // 将文本插入到光标位置
+        range.insertNode(textNode);
+        updatePointPosition(range, selection);
+    }
+}
+
+/**
+ * 剪切功能
+ */
+class Cut extends MenuItem {
+
+    constructor() {
+        super({ type: "cut", text: "剪切" });
+    }
+
+    handleClick() {
+        this.handleCut();
+    }
+
+    handleCut() {
+        // 获取选区文本
+        const selectionText = getSelectionText();
+        const selection = window.getSelection();
+        // 将选区文本写入剪切板
+        navigator.clipboard.writeText(selectionText);
+        // 判断是否有选区内容
+        if (selectionText.trim().length > 0) {
+            const range = selection.getRangeAt(0);
+            range.deleteContents();
+            updatePointPosition(range, selection);
+        } else {
+            console.log('没有选区内容');
+        }
+    }
+}
+
+/**
+ * 翻译功能
+ */
+class Translate extends MenuItem {
+
+    constructor() {
+        super({ type: "translate", text: "翻译" });
+    }
+
+    handleClick() {
+        this.handleTranslate();
+    }
+
+    handleTranslate() {
+        const translateArea = document.querySelector('.translateArea');
+        // 获取选区内容
+        const selectContent = getSelectionText();
+        // 设置默认翻译的语言
+        translate.language.setDefaultTo('english');
+        // 隐藏语言下拉菜单
+        translate.selectLanguageTag.show = false;
+        // 翻译选区内容
+        if (selectContent) {
+            translate.request.translateText(selectContent, function (data) {
+                translateArea.textContent = data.text[0];
+                console.log(data);
+            })
+        } else {
+            console.log('不存在内容');
+        }
     }
 }
 
@@ -33,78 +144,14 @@ class Menu {
     floatMenuCls = "float-menu";
 
     constructor() {
-        this.menuItems = [
-            new MenuItem({ type: "copy", text: "复制", onClick: () => this.handleCopy() }),
-            new MenuItem({ type: "paste", text: "粘贴", onClick: () => this.handlePaste() }),
-            new MenuItem({ type: "cut", text: "剪切", onClick: () => this.handleCut() }),
-            new MenuItem({ type: "translate", text: "翻译", onClick: () => this.handleTranslate() }),
-        ];
-    }
-
-    // 复制功能
-    handleCopy() {
-        this.hideFloatMenu();
-        navigator.clipboard.writeText(getSelectionText());
-    }
-
-    // 粘贴功能
-    async handlePaste() {
-        this.hideFloatMenu();
-        // 获取剪切板的内容
-        const pasteContent = await navigator.clipboard.readText();
-        // 获取选区内容
-        const selectionText = getSelectionText();
-        const selection = window.getSelection();
-        const range = selection.getRangeAt(0);
-        // 判断选区
-        if (selectionText.trim().length > 0) {
-            // 清除选区的内容
-            range.deleteContents();
-        }
-        // 创建虚拟节点
-        const textNode = document.createTextNode(pasteContent);
-        // 将文本插入到光标位置
-        range.insertNode(textNode);
-        updatePointPosition(range, selection);
-    }
-
-    // 剪切功能
-    handleCut() {
-        this.hideFloatMenu();
-        // 获取选区文本
-        const selectionText = getSelectionText();
-        const selection = window.getSelection();
-        // 将选区文本写入剪切板
-        navigator.clipboard.writeText(selectionText);
-        // 判断是否有选区内容
-        if (selectionText.trim().length > 0) {
-            const range = selection.getRangeAt(0);
-            range.deleteContents();
-            updatePointPosition(range, selection);
-        } else {
-            console.log('没有选区内容');
-        }
-    }
-
-    // 翻译功能
-    handleTranslate() {
-        this.hideFloatMenu();
-        const translateArea = document.querySelector('.translateArea');
-        // 获取选区内容
-        const selectContent = getSelectionText();
-        // 设置默认翻译的语言
-        translate.language.setDefaultTo('english');
-        // 隐藏语言下拉菜单
-        translate.selectLanguageTag.show = false;
-        // 翻译选区内容
-        if (selectContent) {
-            translate.request.translateText(selectContent, function (data) {
-                translateArea.textContent = data.text[0];
-                console.log(data);
-            })
-        } else {
-            console.log('不存在内容');
-        }
+        const menuItems = [new Copy(), new Paste(), new Cut(), new Translate()];
+        this.menuItems = menuItems.map(item => {
+            return {
+                type: item.type,
+                text: item.text,
+                onClick: item.handleClick.bind(item)
+            }
+        })
     }
 
     // 设置菜单位置
@@ -136,7 +183,7 @@ class Menu {
                 itemElm.appendChild(document.createTextNode(menuItem.text));
                 itemElm.setAttribute('data-type', menuItem.type);
                 itemElm.classList.add("menu-item");
-                itemElm.addEventListener('click', () => menuItem.handleClick());
+                itemElm.addEventListener('click', () => menuItem.onClick());
                 floatMenuElm.appendChild(itemElm);
             });
             document.body.appendChild(floatMenuElm);
