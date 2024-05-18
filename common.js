@@ -43,12 +43,11 @@ class SelectionTool {
  */
 class MenuItem {
 
-    constructor([menuItem, hideFloatMenu]) {
-        const { type, text, onClick } = menuItem;
+    constructor({ menuItem, onClick }) {
+        const { type, text } = menuItem;
         this.type = type;
         this.text = text;
         this.onClick = onClick;
-        this.hideFloatMenu = hideFloatMenu;
     }
 
     createItems() {
@@ -56,10 +55,7 @@ class MenuItem {
         itemElm.appendChild(document.createTextNode(this.text));
         itemElm.setAttribute('data-type', this.type);
         itemElm.classList.add("menu-item");
-        itemElm.addEventListener('click', () => {
-            this.onClick();
-            this.hideFloatMenu();
-        });
+        itemElm.addEventListener('click', this.onClick);
         return itemElm;
     }
 }
@@ -85,14 +81,19 @@ class Menu {
 
     // 设置菜单位置
     setMenuElmPosition(menuElm) {
+        // if (!SelectionTool.getSelectionText()) {
+        //     menuElm.style.left = 0;
+        //     menuElm.style.top = 0;
+        //     return;
+        // }
         const selection = SelectionTool.getSelection();
         const { isCollapsed, anchorOffset, focusOffset } = selection;
         const rect = SelectionTool.getBoundingClientRect();
         const menuElmWidth = menuElm.offsetWidth / 2;
         // 判断选区的位置
         if (isCollapsed) {
-            menuElm.style.left = (rect.right || setCursorPosInEditableElement(menuElm, 0)) + "px";
-            menuElm.style.top = (rect.bottom || setCursorPosInEditableElement(menuElm, 0)) + "px";
+            menuElm.style.left = (rect.right) + "px";
+            menuElm.style.top = (rect.bottom) + "px";
         } else if (anchorOffset < focusOffset) {
             menuElm.style.left = rect.left + window.scrollX + rect.width / 2 - menuElmWidth + "px";
             menuElm.style.top = rect.bottom + window.scrollY + 10 + "px";
@@ -109,7 +110,13 @@ class Menu {
             floatMenuElm = document.createElement("div");
             floatMenuElm.classList.add(this.floatMenuCls);
             menuItems.forEach((menuItem) => {
-                const itemElm = new MenuItem([menuItem, this.hideFloatMenu.bind(this)]);
+                const itemElm = new MenuItem({
+                    menuItem,
+                    onClick: () => {
+                        this.hideFloatMenu();
+                        menuItem.onClick();
+                    }
+                });
                 floatMenuElm.appendChild(itemElm.createItems());
             });
             document.body.appendChild(floatMenuElm);
@@ -149,12 +156,29 @@ class Menu {
 }
 const menu = new Menu();
 
-const menuItems = [
-    { type: 'copy', text: '复制', onClick: () => handleCopy() },
-    { type: 'paste', text: '粘贴', onClick: () => handlePaste() },
-    { type: 'cut', text: '剪切', onClick: () => handleCut() },
-    { type: 'translate', text: '翻译', onClick: () => handleTranslate() },
+const items = [
+    { type: 'edit', text: '编辑', onClick: edit },
+    { type: 'edit', text: '编辑', onClick: edit },
+    { type: 'edit', text: '编辑', onClick: edit },
+    { type: 'edit', text: '编辑', onClick: edit },
 ]
+
+// menu.showFloatMenu(items);
+
+const menuItems = [
+    { type: 'copy', text: '复制', onClick: handleCopy },
+    { type: 'paste', text: '粘贴', onClick: handlePaste },
+    { type: 'cut', text: '剪切', onClick: handleCut },
+    { type: 'translate', text: '翻译', onClick: handleTranslate },
+]
+
+// 事件菜单
+const showEventMenu = items;
+
+function edit() {
+    console.log('编辑');
+}
+
 
 function handleCopy() {
     ClipboardTool.writeText(SelectionTool.getSelectionText());
@@ -262,7 +286,7 @@ function handleMouseup(event) {
 async function handleClick(event) {
     const { showFloatMenuOnClick } = menu.menuStatus;
     if (showFloatMenuOnClick) {
-        menu.showFloatMenu(menuItems);
+        menu.showFloatMenu(showEventMenu);
         // 解除禁用
         const floatMenuElm = menu.getFloatElm();
         const menuElms = floatMenuElm.children;
@@ -299,13 +323,13 @@ function handleDragstart(event) {
 function handleDragend(event) {
     const { shouldShowMenuOnDragend } = menu.menuStatus;
     if (shouldShowMenuOnDragend) {
-        menu.showFloatMenu(menuItems);
+        menu.showFloatMenu(showEventMenu);
     }
 }
 
 async function handleContextmenu(event) {
     event.preventDefault();
-    menu.showFloatMenu(menuItems);
+    menu.showFloatMenu(showEventMenu);
     // 禁用部分按钮
     const floatMenuElm = menu.getFloatElm();
     const menuElms = floatMenuElm.children;
@@ -320,15 +344,4 @@ async function handleContextmenu(event) {
             }
         })
     }
-}
-
-// 当没有选取任何文本时，设置光标位置到菜单位置
-function setCursorPosInEditableElement(element, pos) {
-    let range;
-    range = document.body.createTextRange();
-    range.moveToElementText(element);
-    range.collapse(false);
-    range.moveStart('character', pos);
-    range.moveEnd('character', pos);
-    range.select();
 }
