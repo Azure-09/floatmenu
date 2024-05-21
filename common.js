@@ -173,7 +173,7 @@ const menuItems = [
 ]
 
 // 事件菜单
-const showEventMenu = items;
+const showEventMenu = menuItems;
 
 function edit() {
     console.log('编辑');
