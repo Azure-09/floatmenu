@@ -6,7 +6,7 @@ body {
     display: grid;
     gap: 20px;
     grid-template-columns: 600px 600px;
-    grid-template-rows: 500px 500px;
+    grid-template-rows: 1000px 1000px;
     justify-content: center;
     margin-top: 100px;
 }
@@ -15,7 +15,8 @@ body {
 .translateArea {
     border-radius: 15px;
     padding: 25px;
-    text-align: justify;
+    /* text-align: justify; */
+    line-height: 25px;
     background-color: #fff;
     box-shadow: rgba(149, 157, 165, 0.2) 0px 8px 24px;
     outline: none;
@@ -38,8 +39,9 @@ body {
 }
 
 .menu-item {
-    width: 50px;
-    height: 50px;
+    /* width: 40px;
+    height: 40px; */
+    padding: 10px 5px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -56,4 +58,34 @@ body {
 
 .disabled {
     pointer-events: none;
+}
+
+::selection {
+    background-color: rgb(220, 234, 255);
+    /* 改变选中部分的背景色 */
+    /* color: #000; 改变选中文本的颜色 */
+}
+
+.bold_font {
+    font-weight: bold;
+}
+
+.italic_font {
+    font-style: italic;
+}
+
+.underline_font {
+    text-decoration: underline;
+}
+
+.linethrough_font {
+    text-decoration: line-through;
+}
+
+.color_font {
+    color: red;
+}
+
+.bg_font {
+    background-color: yellow;
 }
