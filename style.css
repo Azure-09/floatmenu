@@ -6,9 +6,9 @@ body {
     display: grid;
     gap: 20px;
     grid-template-columns: 600px 600px;
-    grid-template-rows: 1000px 1000px;
+    grid-template-rows: 1000px;
     justify-content: center;
-    margin-top: 100px;
+    /* margin-top: 100px; */
 }
 
 .editor,
@@ -48,12 +48,33 @@ body {
     border-radius: 5px;
     cursor: auto;
     user-select: none;
+    cursor: pointer;
 }
 
 .menu-item:hover {
     background-color: lightgrey;
 }
 
+.save {
+    padding: 8px 15px;
+    font-size: 18px;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    background-color: #409EFF;
+    margin-left: 26%;
+    margin-top: 100px;
+    margin-bottom: 10px;
+    cursor: pointer;
+}
+
+.save:hover {
+    background-color: rgb(121, 187, 255);
+}
+
+.save:active {
+    background-color: rgb(51, 126, 204);
+}
 
 
 .disabled {
@@ -62,8 +83,10 @@ body {
 
 ::selection {
     background-color: rgb(220, 234, 255);
-    /* 改变选中部分的背景色 */
-    /* color: #000; 改变选中文本的颜色 */
+}
+
+.disabledBgc {
+    background-color: rgb(243, 243, 243)
 }
 
 .bold_font {
@@ -88,4 +111,8 @@ body {
 
 .bg_font {
     background-color: yellow;
+}
+
+.addBgc {
+    background-color: lightgrey;
 }

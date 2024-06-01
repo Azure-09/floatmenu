@@ -22,11 +22,13 @@ function addOrRemoveClassName(className) {
 
     // 根据当前状态决定添加还是移除类
     if (!allHaveClassName) {
+        event.target.classList.add('addBgc');
         textNodes.forEach(textNode => {
             textNode.addClassName(className);
             fragment.appendChild(textNode.createElement());
         })
     } else {
+        event.target.classList.remove('addBgc');
         textNodes.forEach(textNode => {
             textNode.removeClassName(className);
             fragment.appendChild(textNode.createElement());

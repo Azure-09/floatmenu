@@ -10,6 +10,7 @@ const menu = new Menu();
 
 const editorElm = document.querySelector(".editor");
 const imageUpload = document.getElementById('imageUpload');
+const saveButton = document.querySelector('.save');
 
 
 // 事件菜单
@@ -43,6 +44,7 @@ imageUpload.addEventListener('change', handleImageUpload);
 
 // 保存文档数据
 document.addEventListener('keydown', handleKeydown);
+saveButton.addEventListener('click', saveData);
 
 // 加载文档数据
 document.addEventListener('DOMContentLoaded', handleLoaded);
@@ -78,7 +80,7 @@ async function handleClick(event) {
             const type = menuElm.getAttribute('data-type') === "paste";
             const imgtype = menuElm.getAttribute('data-type') === "addImg";
             if (!type && !imgtype) {
-                menuElm.classList.remove('disabled');
+                menuElm.classList.remove('disabled', 'disabledBgc');
             } else {
                 clipboardText ? menuElm.classList.remove('disabled') : menuElm.classList.add('disabled');
             }
@@ -129,7 +131,7 @@ async function handleContextmenu(event) {
             const type = menuElm.getAttribute('data-type') === "paste";
             const imgtype = menuElm.getAttribute('data-type') === "addImg";
             if (!type && !imgtype) {
-                menuElm.classList.add('disabled');
+                menuElm.classList.add('disabled', 'disabledBgc');
             } else {
                 clipboardText ? menuElm.classList.remove('disabled') : menuElm.classList.add('disabled');
             }
@@ -156,12 +158,16 @@ function handleImageUpload(event) {
  * @param {*} event 
  */
 function handleKeydown(event) {
-    const documentHTML = [];
     if (event.ctrlKey && event.key === 's') {
         event.preventDefault();
-        extractElmentNodes(editorElm, documentHTML);
-        localStorage.setItem('documentHTML', JSON.stringify(documentHTML));
+        saveData();
     }
+}
+
+function saveData() {
+    const documentHTML = [];
+    extractElmentNodes(editorElm, documentHTML);
+    localStorage.setItem('documentHTML', JSON.stringify(documentHTML));
 }
 
 /**
