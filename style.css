@@ -86,7 +86,8 @@ body {
 }
 
 .disabledBgc {
-    background-color: rgb(243, 243, 243)
+    color: #ccc;
+    /* background-color: rgb(243, 243, 243) */
 }
 
 .bold_font {
