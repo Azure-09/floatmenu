@@ -12,6 +12,9 @@ const editorElm = document.querySelector(".editor");
 const imageUpload = document.getElementById('imageUpload');
 const saveButton = document.querySelector('.save');
 
+const dbName = 'documentHTML';
+const storeName = 'nodes';
+
 
 // 事件菜单
 const showEventMenu = styleMenu;
@@ -167,7 +170,7 @@ function handleKeydown(event) {
 function saveData() {
     const documentHTML = [];
     extractElmentNodes(editorElm, documentHTML);
-    localStorage.setItem('documentHTML', JSON.stringify(documentHTML));
+    addData(documentHTML);
 }
 
 /**
@@ -187,30 +190,7 @@ function handleImgLoad(event) {
  * 更新页面数据
  */
 function handleLoaded() {
-    const fragment = document.createDocumentFragment();
-    const documentHTML = JSON.parse(localStorage.getItem('documentHTML'));
-
-    if (documentHTML) {
-        documentHTML.forEach(node => {
-            if (node.tagName === 'text') {
-                const { textContent, classNames } = node;
-                if (classNames.length <= 0) {
-                    fragment.appendChild(document.createTextNode(textContent));
-                } else {
-                    const element = document.createElement('span');
-                    element.textContent = textContent;
-                    element.classList.add(...classNames);
-                    fragment.appendChild(element);
-                }
-            } else if (node.tagName === 'img') {
-                const img = document.createElement('img');
-                img.src = node.src;
-                img.style.maxWidth = '100%';
-                fragment.appendChild(img);
-            }
-        })
-        editorElm.replaceChildren(fragment);
-    }
+    getData();
 }
 
 
@@ -233,4 +213,90 @@ function extractElmentNodes(containerElement, documentHTML) {
             }
         }
     })
+}
+
+/**
+ * 打开数据库
+ * @returns 
+ */
+function openDB() {
+    return new Promise((resolve, reject) => {
+        const request = window.indexedDB.open(dbName, 2);
+        request.onerror = (event) => reject(event.target.error);
+        request.onupgradeneeded = (event) => {
+            const db = event.target.result;
+            if (!db.objectStoreNames.contains(storeName)) {
+                db.createObjectStore(storeName, { autoIncrement: true });
+            }
+        }
+        request.onsuccess = (event) => resolve(event.target.result);
+    })
+}
+
+/**
+ * 添加数据到数据库
+ * @param {*} data 
+ */
+async function addData(data) {
+    const db = await openDB();
+    const transaction = db.transaction([storeName], 'readwrite');
+    const objectStore = transaction.objectStore(storeName);
+
+    const clearRequest = objectStore.clear();
+    clearRequest.onsuccess = (event) => {
+        let addRequest;
+        data.forEach(node => {
+            addRequest = objectStore.add(node);
+        })
+
+        addRequest.onsuccess = (event) => console.log('数据添加成功');
+        addRequest.onerror = (event) => console.log('数据添加失败');
+
+    }
+    clearRequest.onerror = (event) => console.log('清除数据时出错:', event.target.error);
+}
+
+/**
+ * 获取数据并渲染页面
+ */
+async function getData() {
+    const db = await openDB();
+    const transaction = db.transaction([storeName], 'readonly');
+    const objectStore = transaction.objectStore(storeName);
+
+    const getRequest = objectStore.getAll();
+    getRequest.onsuccess = (event) => {
+        const data = event.target.result;
+
+        render(data);
+    }
+}
+
+/**
+ * 渲染页面逻辑
+ * @param {*} data 
+ */
+function render(data) {
+    const fragment = document.createDocumentFragment();
+    if (data) {
+        data.forEach(node => {
+            if (node.tagName === 'text') {
+                const { textContent, classNames } = node;
+                if (classNames.length <= 0) {
+                    fragment.appendChild(document.createTextNode(textContent));
+                } else {
+                    const element = document.createElement('span');
+                    element.textContent = textContent;
+                    element.classList.add(...classNames);
+                    fragment.appendChild(element);
+                }
+            } else if (node.tagName === 'img') {
+                const img = document.createElement('img');
+                img.src = node.src;
+                img.style.maxWidth = '100%';
+                fragment.appendChild(img);
+            }
+        })
+        editorElm.replaceChildren(fragment);
+    }
 }
