@@ -25,13 +25,13 @@ function addOrRemoveClassName(className) {
         event.target.classList.add('addBgc');
         textNodes.forEach(textNode => {
             textNode.addClassName(className);
-            fragment.appendChild(textNode.createElement());
+            fragment.appendChild(textNode.renderElement());
         })
     } else {
         event.target.classList.remove('addBgc');
         textNodes.forEach(textNode => {
             textNode.removeClassName(className);
-            fragment.appendChild(textNode.createElement());
+            fragment.appendChild(textNode.renderElement());
         });
     }
     // 清除原有内容并插入新内容

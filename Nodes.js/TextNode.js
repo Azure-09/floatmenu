@@ -1,5 +1,5 @@
 export class TextNode {
-    tagName = 'text';
+    nodeType = 'text';
 
     constructor(textContent, classNames = []) {
         this.textContent = textContent;
@@ -27,10 +27,14 @@ export class TextNode {
     }
 
     // 生成span元素
-    createElement() {
+    renderElement() {
         const element = document.createElement('span');
         element.textContent = this.textContent;
         this.classNames.forEach(className => element.classList.add(className));
         return element;
+    }
+
+    serialize() {
+        return { nodeType: 'text', textContent: this.textContent, classNames: this.classNames };
     }
 }

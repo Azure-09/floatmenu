@@ -1,14 +1,18 @@
 export class ImgNode {
-    tagName = 'img';
+    nodeType = 'img';
 
     constructor(src) {
         this.src = src;
     }
 
-    createImage() {
+    renderImage() {
         const img = document.createElement('img');
         img.src = this.src;
         img.style.maxWidth = '100%';
         return img;
+    }
+
+    serialize() {
+        return { nodeType: "img", src: this.src };
     }
 }

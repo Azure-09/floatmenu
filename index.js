@@ -168,8 +168,7 @@ function handleKeydown(event) {
 }
 
 function saveData() {
-    const documentHTML = [];
-    extractElmentNodes(editorElm, documentHTML);
+    const documentHTML = extractElmentNodes(editorElm);
     addData(documentHTML);
 }
 
@@ -182,7 +181,7 @@ function handleImgLoad(event) {
     const imgNode = new ImgNode(reader.result);
     const range = SelectionTool.getRangeAt();
     range.deleteContents();
-    range.insertNode(imgNode.createImage());
+    range.insertNode(imgNode.renderImage());
     SelectionTool.updatePointPosition(range);
 }
 
@@ -199,10 +198,12 @@ function handleLoaded() {
  * @param {*} containerElement 
  * @param {*} documentHTML 
  */
-function extractElmentNodes(containerElement, documentHTML) {
+function extractElmentNodes(containerElement) {
+    const documentHTML = [];
     containerElement.childNodes.forEach(node => {
         if (node.nodeType === Node.TEXT_NODE) {
-            documentHTML.push(new TextNode(node.textContent));
+            const textNode = new TextNode(node.textContent);
+            documentHTML.push(textNode);
         } else if (node.nodeType === Node.ELEMENT_NODE) {
             if (node.tagName.toLowerCase() === 'span') {
                 const textNode = new TextNode(node.textContent, [...node.classList]);
@@ -213,6 +214,7 @@ function extractElmentNodes(containerElement, documentHTML) {
             }
         }
     })
+    return documentHTML;
 }
 
 /**
@@ -267,7 +269,6 @@ async function getData() {
     const getRequest = objectStore.getAll();
     getRequest.onsuccess = (event) => {
         const data = event.target.result;
-
         render(data);
     }
 }
@@ -280,7 +281,7 @@ function render(data) {
     const fragment = document.createDocumentFragment();
     if (data) {
         data.forEach(node => {
-            if (node.tagName === 'text') {
+            if (node.nodeType === 'text') {
                 const { textContent, classNames } = node;
                 if (classNames.length <= 0) {
                     fragment.appendChild(document.createTextNode(textContent));
@@ -290,7 +291,7 @@ function render(data) {
                     element.classList.add(...classNames);
                     fragment.appendChild(element);
                 }
-            } else if (node.tagName === 'img') {
+            } else if (node.nodeType === 'img') {
                 const img = document.createElement('img');
                 img.src = node.src;
                 img.style.maxWidth = '100%';
