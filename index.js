@@ -269,7 +269,10 @@ async function getData() {
     const getRequest = objectStore.getAll();
     getRequest.onsuccess = (event) => {
         const data = event.target.result;
-        render(data);
+        const fragment = render(data);
+        if (fragment.childNodes.length > 0) {
+            editorElm.replaceChildren(fragment);
+        }
     }
 }
 
@@ -298,6 +301,6 @@ function render(data) {
                 fragment.appendChild(img);
             }
         })
-        editorElm.replaceChildren(fragment);
+        return fragment;
     }
 }
