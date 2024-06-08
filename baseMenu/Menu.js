@@ -16,26 +16,28 @@ class Menu {
 
     floatMenuCls = "float-menu";
 
-    constructor(menuItems) {
-        this.menuItems = menuItems;
+    constructor() {
+
     }
 
     // 设置菜单位置
     setMenuElmPosition(menuElm) {
-        // if (!SelectionTool.getSelectionText()) {
-        //     menuElm.style.left = 0;
-        //     menuElm.style.top = 0;
-        //     return;
-        // }
         const selection = SelectionTool.getSelection();
+        const rangeCount = selection.rangeCount;
+        if (rangeCount <= 0) {
+            // menuElm.style.left = 0;
+            // menuElm.style.top = 0;
+            return;
+        }
+
         const { isCollapsed, anchorOffset, focusOffset } = selection;
         const rect = SelectionTool.getBoundingClientRect();
         const menuElmWidth = menuElm.offsetWidth / 2;
+
         // 判断选区的位置
-        if (isCollapsed) {
-            console.log(rect.right, rect.bottom);
-            menuElm.style.left = (rect.right) + "px";
-            menuElm.style.top = (rect.bottom) + "px";
+        if (rangeCount > 0) {
+            menuElm.style.left = rect.right + "px";
+            menuElm.style.top = rect.bottom + "px";
         } else if (anchorOffset < focusOffset) {
             menuElm.style.left = rect.left + window.scrollX + rect.width / 2 - menuElmWidth + "px";
             menuElm.style.top = rect.bottom + window.scrollY + 10 + "px";
@@ -57,25 +59,29 @@ class Menu {
                     onClick: () => {
                         menuItems.length === 5 ? this.hideFloatMenu() : null
                         menuItem.onClick();
-                    }
+                    },
+
                 });
                 floatMenuElm.appendChild(itemElm.createItems());
             });
-            document.body.appendChild(floatMenuElm);
         }
         return floatMenuElm;
     }
 
     // 获取菜单
-    getFloatElm() {
-        return document.querySelector("." + this.floatMenuCls);
+    getFloatElm(floatMenuCls = 'float-menu') {
+        return document.querySelector("." + floatMenuCls);
     }
 
 
     // 显示菜单
-    showFloatMenu(menuItems) {
+    showFloatMenu(menuItems, config = {}, containElm = document.body) {
+        const { floatMenuCls, className } = config;
+        this.floatMenuCls = floatMenuCls;
+        // 创建菜单
         const menuElm = this.createFloatMenu(menuItems);
-        menuElm.classList.add("show");
+        className ? menuElm.classList.add(className) : menuElm.classList.add("show");
+        containElm.appendChild(menuElm);
 
         // 设置菜单位置
         this.setMenuElmPosition(menuElm);

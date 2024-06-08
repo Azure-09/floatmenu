@@ -3,7 +3,7 @@
  */
 class MenuItem {
 
-    constructor({ menuItem, onClick }) {
+    constructor({ menuItem, onClick, }) {
         const { type, text } = menuItem;
         this.type = type;
         this.text = text;

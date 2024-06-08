@@ -3,38 +3,37 @@ body {
 }
 
 .root {
-    display: grid;
-    gap: 20px;
-    grid-template-columns: 600px 600px;
-    grid-template-rows: 1000px;
-    justify-content: center;
-    /* margin-top: 100px; */
+    max-width: 800px;
+    margin: auto;
 }
 
-.editor,
-.translateArea {
+.editor {
     border-radius: 15px;
     padding: 25px;
+    padding-bottom: 60px;
     /* text-align: justify; */
     line-height: 25px;
     background-color: #fff;
     box-shadow: rgba(149, 157, 165, 0.2) 0px 8px 24px;
     outline: none;
+    margin-top: 80px;
 }
 
-.float-menu {
+.float-menu,
+.navFloat-menu {
     position: absolute;
     display: none;
     top: -999px;
     left: -999px;
     column-gap: 8px;
     background-color: white;
-    border: solid 1px gray;
+    border: solid 1px lightgray;
     border-radius: 5px;
+    box-shadow: rgba(149, 157, 165, 0.2) 0px 8px 24px;
     padding: 5px;
 }
 
-.float-menu.show {
+.show {
     display: flex;
 }
 
@@ -55,26 +54,7 @@ body {
     background-color: lightgrey;
 }
 
-.save {
-    padding: 8px 15px;
-    font-size: 18px;
-    color: #fff;
-    border: none;
-    border-radius: 6px;
-    background-color: #409EFF;
-    margin-left: 26%;
-    margin-top: 100px;
-    margin-bottom: 10px;
-    cursor: pointer;
-}
 
-.save:hover {
-    background-color: rgb(121, 187, 255);
-}
-
-.save:active {
-    background-color: rgb(51, 126, 204);
-}
 
 
 .disabled {
@@ -116,4 +96,84 @@ body {
 
 .addBgc {
     background-color: lightgrey;
+}
+
+.nav {
+    position: fixed;
+    top: 0;
+    left: 0;
+    text-align: center;
+    width: 100%;
+    height: 60px;
+    border: 1px solid lightgray;
+    border-radius: 7px;
+    background-color: #fff;
+}
+
+.save {
+    position: absolute;
+    top: 50%;
+    right: 5%;
+    transform: translateY(-50%);
+    padding: 8px 15px;
+    font-size: 17px;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    background-color: #409EFF;
+    cursor: pointer;
+}
+
+.save:hover {
+    background-color: rgb(121, 187, 255);
+}
+
+.save:active {
+    background-color: rgb(51, 126, 204);
+}
+
+.navFloat-menu {
+    border: none;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    box-shadow: none;
+}
+
+.columnshow {
+    display: block;
+}
+
+.translateArea {
+    width: 350px;
+    height: calc(100vh - 62px);
+    background-color: #fff;
+    padding: 20px;
+    box-sizing: border-box;
+    position: fixed;
+    bottom: 0;
+    right: 0;
+    transform: translateX(100%);
+    transition: transform 0.2s ease-in;
+}
+
+.drawerHide {
+    transform: translateX(100%);
+}
+
+.drawerShow{
+    transform: translateX(0);
+}
+
+.box-title {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 20px;
+    color: #aaa;
+}
+
+.closeDrawer {
+    cursor: pointer;
+    font-size: 18px;
 }

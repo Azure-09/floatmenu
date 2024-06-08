@@ -6,7 +6,6 @@ const baseMenu = [
     { type: 'cut', text: '剪切', onClick: handleCut },
     { type: 'translate', text: '翻译', onClick: handleTranslate },
     { type: 'addImg', text: '插图', onClick: handleAddImg },
-    
 ]
 
 /**
@@ -59,6 +58,7 @@ function handleCut() {
  * 翻译功能
  */
 function handleTranslate() {
+    const translateText = document.querySelector('.translateText');
     const translateArea = document.querySelector('.translateArea');
     // 获取选区内容
     const selectContent = SelectionTool.getSelectionText();
@@ -70,8 +70,11 @@ function handleTranslate() {
     // 翻译选区内容
     if (selectContent) {
         translate.request.translateText(selectContent, function (data) {
-            translateArea.textContent = data.text[0];
-            // console.log(data);
+            translateText.textContent = data.text;
+            const hasClassName = translateArea.classList.contains('drawerShow');
+            if (!hasClassName) {
+                translateArea.classList.add('drawerShow');
+            }
         })
     } else {
         console.log('不存在内容');

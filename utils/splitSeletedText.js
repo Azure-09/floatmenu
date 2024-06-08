@@ -7,10 +7,8 @@ function splitSelectedText() {
     const tempDiv = document.createElement('div');
     tempDiv.innerHTML = selectionHtml;
 
-    const textNodes = [];
-
     // 根据HTML结构提取文本和类名
-    extractTextAndElementNodes(tempDiv, textNodes);
+    const textNodes = extractTextAndElementNodes(tempDiv);
 
     return textNodes;
 }
@@ -30,7 +28,8 @@ function getSelectedHtml() {
     return selectedHtml;
 }
 
-function extractTextAndElementNodes(containerElement, textNodes) {
+function extractTextAndElementNodes(containerElement) {
+    const textNodes = [];
     containerElement.childNodes.forEach(node => {
         if (node.nodeType === Node.TEXT_NODE) {
             textNodes.push(new TextNode(node.textContent));
@@ -39,6 +38,7 @@ function extractTextAndElementNodes(containerElement, textNodes) {
             textNodes.push(newNode);
         }
     })
+    return textNodes;
 }
 
 

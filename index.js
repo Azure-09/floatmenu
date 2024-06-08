@@ -4,6 +4,10 @@ import baseMenu from "./baseMenu/baseMenu.js";
 import styleMenu from "./styleMenu/styleMenu.js";
 import { ImgNode } from "./Nodes.js/ImgNode.js";
 import { TextNode } from "./Nodes.js/TextNode.js";
+import { addData, getData } from "./indexedDB/index.js";
+import render from "./utils/render.js";
+import extractElmentNodes from "./utils/extractElmentNodes.js";
+import getClassName from "./utils/getClassName.js";
 
 
 const menu = new Menu();
@@ -11,9 +15,15 @@ const menu = new Menu();
 const editorElm = document.querySelector(".editor");
 const imageUpload = document.getElementById('imageUpload');
 const saveButton = document.querySelector('.save');
+const nav = document.querySelector('.nav');
+const translateArea = document.querySelector('.translateArea');
+const closeDrawer = translateArea.querySelector('.closeDrawer');
 
-const dbName = 'documentHTML';
-const storeName = 'nodes';
+const navFloatMneu = styleMenu.concat(baseMenu);
+
+menu.showFloatMenu(navFloatMneu, {
+    floatMenuCls: 'navFloat-menu',
+}, nav);
 
 
 // 事件菜单
@@ -52,6 +62,9 @@ saveButton.addEventListener('click', saveData);
 // 加载文档数据
 document.addEventListener('DOMContentLoaded', handleLoaded);
 
+// 关闭抽屉
+closeDrawer.addEventListener('click', handleCloseDrawer);
+
 
 /**
  * 
@@ -74,10 +87,12 @@ function handleMouseup(event) {
 async function handleClick(event) {
     const { showFloatMenuOnClick } = menu.menuStatus;
     if (showFloatMenuOnClick) {
-        menu.showFloatMenu(showEventMenu);
-        // 解除禁用
+        menu.showFloatMenu(showEventMenu, { floatMenuCls: 'float-menu' });
+
         const floatMenuElm = menu.getFloatElm();
         const menuElms = floatMenuElm.children;
+        
+        // 解除禁用
         const clipboardText = await navigator.clipboard.readText();
         Array.from(menuElms).filter(menuElm => {
             const type = menuElm.getAttribute('data-type') === "paste";
@@ -112,7 +127,7 @@ function handleDragstart(event) {
 function handleDragend(event) {
     const { shouldShowMenuOnDragend } = menu.menuStatus;
     if (shouldShowMenuOnDragend) {
-        menu.showFloatMenu(showEventMenu);
+        menu.showFloatMenu(showEventMenu, { floatMenuCls: 'float-menu' });
     }
 }
 
@@ -121,10 +136,10 @@ async function handleContextmenu(event) {
     const isMouseInRects = event.pageX >= rects.left && event.pageX <= rects.right && event.pageY >= rects.top && event.pageY <= rects.bottom;
     if (isMouseInRects) {
         menu.hideFloatMenu();
-        menu.showFloatMenu(baseMenu);
+        menu.showFloatMenu(baseMenu, { floatMenuCls: 'float-menu', className: 'columnshow' });
     }
     event.preventDefault();
-    menu.showFloatMenu(baseMenu);
+    menu.showFloatMenu(baseMenu, { floatMenuCls: 'float-menu', className: 'columnshow' });
     // 禁用部分按钮
     const floatMenuElm = menu.getFloatElm();
     const menuElms = floatMenuElm.children;
@@ -151,13 +166,20 @@ function handleImageUpload(event) {
 
     var reader = new FileReader();
 
-    reader.addEventListener('load', handleImgLoad);
+    reader.addEventListener('load', function handleImgLoad() {
+        // 当文件读取完成后，将图片以Base64格式插入到可编辑区域
+        const imgNode = new ImgNode(reader.result);
+        const range = SelectionTool.getRangeAt();
+        range.deleteContents();
+        range.insertNode(imgNode.renderImage());
+        SelectionTool.updatePointPosition(range);
+    });
 
     reader.readAsDataURL(file);
 }
 
 /**
- * 保存页面数据
+ * ctrl+s 保存页面数据
  * @param {*} event 
  */
 function handleKeydown(event) {
@@ -167,140 +189,38 @@ function handleKeydown(event) {
     }
 }
 
+/**
+ * 点击button保存数据
+ */
 function saveData() {
     const documentHTML = extractElmentNodes(editorElm);
     addData(documentHTML);
 }
 
 /**
- * 加载图片
- * @param {*} event 
- */
-function handleImgLoad(event) {
-    // 当文件读取完成后，将图片以Base64格式插入到可编辑区域
-    const imgNode = new ImgNode(reader.result);
-    const range = SelectionTool.getRangeAt();
-    range.deleteContents();
-    range.insertNode(imgNode.renderImage());
-    SelectionTool.updatePointPosition(range);
-}
-
-/**
  * 更新页面数据
  */
-function handleLoaded() {
-    getData();
+async function handleLoaded() {
+    const data = await getData();
+    const fragment = render(data);
+    if (fragment.childNodes.length > 0) {
+        editorElm.replaceChildren(fragment);
+    }
 }
 
-
 /**
- * 提取元素节点信息
- * @param {*} containerElement 
- * @param {*} documentHTML 
+ * 关闭抽屉回调
  */
-function extractElmentNodes(containerElement) {
-    const documentHTML = [];
-    containerElement.childNodes.forEach(node => {
-        if (node.nodeType === Node.TEXT_NODE) {
-            const textNode = new TextNode(node.textContent);
-            documentHTML.push(textNode);
-        } else if (node.nodeType === Node.ELEMENT_NODE) {
-            if (node.tagName.toLowerCase() === 'span') {
-                const textNode = new TextNode(node.textContent, [...node.classList]);
-                documentHTML.push(textNode);
-            } else if (node.tagName.toLowerCase() === 'img') {
-                const imgNode = new ImgNode(node.src);
-                documentHTML.push(imgNode);
-            }
+function handleCloseDrawer() {
+    translateArea.classList.remove('drawerShow');
+}
+
+function addButtonBgcOnClick(menuItems, floatMenuCls = null) {
+    const classList = getClassName(floatMenuCls);
+    Array.from(menuItems).forEach((item) => {
+        const type = item.getAttribute('data-type');
+        if (classList[type] && !item.classList.contains('addBgc')) {
+            item.classList.add('addBgc');
         }
     })
-    return documentHTML;
-}
-
-/**
- * 打开数据库
- * @returns 
- */
-function openDB() {
-    return new Promise((resolve, reject) => {
-        const request = window.indexedDB.open(dbName, 2);
-        request.onerror = (event) => reject(event.target.error);
-        request.onupgradeneeded = (event) => {
-            const db = event.target.result;
-            if (!db.objectStoreNames.contains(storeName)) {
-                db.createObjectStore(storeName, { autoIncrement: true });
-            }
-        }
-        request.onsuccess = (event) => resolve(event.target.result);
-    })
-}
-
-/**
- * 添加数据到数据库
- * @param {*} data 
- */
-async function addData(data) {
-    const db = await openDB();
-    const transaction = db.transaction([storeName], 'readwrite');
-    const objectStore = transaction.objectStore(storeName);
-
-    const clearRequest = objectStore.clear();
-    clearRequest.onsuccess = (event) => {
-        let addRequest;
-        data.forEach(node => {
-            addRequest = objectStore.add(node);
-        })
-
-        addRequest.onsuccess = (event) => console.log('数据添加成功');
-        addRequest.onerror = (event) => console.log('数据添加失败');
-
-    }
-    clearRequest.onerror = (event) => console.log('清除数据时出错:', event.target.error);
-}
-
-/**
- * 获取数据并渲染页面
- */
-async function getData() {
-    const db = await openDB();
-    const transaction = db.transaction([storeName], 'readonly');
-    const objectStore = transaction.objectStore(storeName);
-
-    const getRequest = objectStore.getAll();
-    getRequest.onsuccess = (event) => {
-        const data = event.target.result;
-        const fragment = render(data);
-        if (fragment.childNodes.length > 0) {
-            editorElm.replaceChildren(fragment);
-        }
-    }
-}
-
-/**
- * 渲染页面逻辑
- * @param {*} data 
- */
-function render(data) {
-    const fragment = document.createDocumentFragment();
-    if (data) {
-        data.forEach(node => {
-            if (node.nodeType === 'text') {
-                const { textContent, classNames } = node;
-                if (classNames.length <= 0) {
-                    fragment.appendChild(document.createTextNode(textContent));
-                } else {
-                    const element = document.createElement('span');
-                    element.textContent = textContent;
-                    element.classList.add(...classNames);
-                    fragment.appendChild(element);
-                }
-            } else if (node.nodeType === 'img') {
-                const img = document.createElement('img');
-                img.src = node.src;
-                img.style.maxWidth = '100%';
-                fragment.appendChild(img);
-            }
-        })
-        return fragment;
-    }
 }
