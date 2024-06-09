@@ -12,6 +12,7 @@ class MenuItem {
 
     createItems() {
         const itemElm = document.createElement("div");
+        itemElm.style.whiteSpace = 'nowrap';
         itemElm.appendChild(document.createTextNode(this.text));
         itemElm.setAttribute('data-type', this.type);
         itemElm.classList.add("menu-item");

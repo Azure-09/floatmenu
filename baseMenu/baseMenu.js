@@ -60,6 +60,7 @@ function handleCut() {
 function handleTranslate() {
     const translateText = document.querySelector('.translateText');
     const translateArea = document.querySelector('.translateArea');
+    translateArea.style.visibility = 'visible';
     // 获取选区内容
     const selectContent = SelectionTool.getSelectionText();
     // 设置默认翻译的语言

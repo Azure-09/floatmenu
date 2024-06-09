@@ -25,17 +25,14 @@ class Menu {
         const selection = SelectionTool.getSelection();
         const rangeCount = selection.rangeCount;
         if (rangeCount <= 0) {
-            // menuElm.style.left = 0;
-            // menuElm.style.top = 0;
             return;
         }
 
         const { isCollapsed, anchorOffset, focusOffset } = selection;
         const rect = SelectionTool.getBoundingClientRect();
         const menuElmWidth = menuElm.offsetWidth / 2;
-
         // 判断选区的位置
-        if (rangeCount > 0) {
+        if (isCollapsed) {
             menuElm.style.left = rect.right + "px";
             menuElm.style.top = rect.bottom + "px";
         } else if (anchorOffset < focusOffset) {
@@ -82,9 +79,19 @@ class Menu {
         const menuElm = this.createFloatMenu(menuItems);
         className ? menuElm.classList.add(className) : menuElm.classList.add("show");
         containElm.appendChild(menuElm);
-
         // 设置菜单位置
         this.setMenuElmPosition(menuElm);
+
+        menuElm.style.visibility = 'hidden';
+        // 根据菜单长度是否超出页面来重新设置菜单位置
+        const menuOffsetRight = window.innerWidth - menuElm.offsetWidth - menuElm.offsetLeft < 0;
+        if (menuOffsetRight) {
+            const overWidth = menuElm.offsetWidth - (window.innerWidth - menuElm.offsetLeft);
+            menuElm.style.left = (menuElm.offsetLeft - overWidth) + 'px';
+            menuElm.style.visibility = 'visible';
+        } else {
+            menuElm.style.visibility = 'visible';
+        }
     }
 
     // 隐藏菜单

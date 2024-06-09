@@ -19,8 +19,8 @@ const nav = document.querySelector('.nav');
 const translateArea = document.querySelector('.translateArea');
 const closeDrawer = translateArea.querySelector('.closeDrawer');
 
+// 创建导航栏样式菜单
 const navFloatMneu = styleMenu.concat(baseMenu);
-
 menu.showFloatMenu(navFloatMneu, {
     floatMenuCls: 'navFloat-menu',
 }, nav);
@@ -91,7 +91,7 @@ async function handleClick(event) {
 
         const floatMenuElm = menu.getFloatElm();
         const menuElms = floatMenuElm.children;
-        
+
         // 解除禁用
         const clipboardText = await navigator.clipboard.readText();
         Array.from(menuElms).filter(menuElm => {
@@ -215,6 +215,11 @@ function handleCloseDrawer() {
     translateArea.classList.remove('drawerShow');
 }
 
+/**
+ * 根据选区文字样式添加按钮背景
+ * @param {*} menuItems 
+ * @param {*} floatMenuCls 
+ */
 function addButtonBgcOnClick(menuItems, floatMenuCls = null) {
     const classList = getClassName(floatMenuCls);
     Array.from(menuItems).forEach((item) => {
