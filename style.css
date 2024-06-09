@@ -122,6 +122,7 @@ body {
     border: none;
     border-radius: 6px;
     background-color: #409EFF;
+    white-space: nowrap;
     cursor: pointer;
 }
 

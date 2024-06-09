@@ -31,14 +31,16 @@ class Menu {
         const { isCollapsed, anchorOffset, focusOffset } = selection;
         const rect = SelectionTool.getBoundingClientRect();
         const menuElmWidth = menuElm.offsetWidth / 2;
+        console.log(anchorOffset, focusOffset);
         // 判断选区的位置
         if (isCollapsed) {
             menuElm.style.left = rect.right + "px";
             menuElm.style.top = rect.bottom + "px";
-        } else if (anchorOffset < focusOffset) {
+        } else if (anchorOffset > focusOffset) {
             menuElm.style.left = rect.left + window.scrollX + rect.width / 2 - menuElmWidth + "px";
             menuElm.style.top = rect.bottom + window.scrollY + 10 + "px";
-        } else if (anchorOffset > focusOffset) {
+        } else if (anchorOffset < focusOffset) {
+            console.log('111');
             menuElm.style.left = rect.left + window.scrollX + rect.width / 2 - menuElmWidth + "px";
             menuElm.style.top = rect.top + window.scrollY - menuElm.offsetHeight - 10 + "px";
         }
