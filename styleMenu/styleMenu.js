@@ -15,10 +15,13 @@ const styleMenu = [
 function addOrRemoveClassName(className) {
     const range = SelectionTool.getRangeAt();
     const fragment = document.createDocumentFragment();
-    const textNodes = splitSelectedText();
+    const textNodes = window.textNodes;
 
     // 确定所有选中文本节点是否都有某个类
-    const allHaveClassName = textNodes.every(textNode => textNode.hasClassName(className));
+    const allHaveClassName = textNodes.every(textNode => {
+        return textNode.hasClassName(className);
+    });
+
 
     // 根据当前状态决定添加还是移除类
     if (!allHaveClassName) {

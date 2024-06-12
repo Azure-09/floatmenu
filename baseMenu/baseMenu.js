@@ -1,4 +1,5 @@
 import SelectionTool from "../utils/SelectionTool.js";
+import showMessage from "../utils/showMessage.js";
 
 const baseMenu = [
     { type: 'copy', text: '复制', onClick: handleCopy },
@@ -13,6 +14,7 @@ const baseMenu = [
  */
 function handleCopy() {
     navigator.clipboard.writeText(SelectionTool.getSelectionText());
+    showMessage('复制成功', 'success');
 }
 
 /**
@@ -34,6 +36,7 @@ async function handlePaste() {
     // 将文本插入到光标位置
     range.insertNode(textNode);
     SelectionTool.updatePointPosition(range);
+    showMessage('粘贴成功', 'success');
 }
 
 /**
@@ -49,8 +52,9 @@ function handleCut() {
         const range = SelectionTool.getRangeAt();
         range.deleteContents();
         SelectionTool.updatePointPosition(range);
+        showMessage('剪切成功', 'success');
     } else {
-        console.log('没有选区内容');
+        showMessage('剪切失败', 'error');
     }
 }
 
@@ -75,13 +79,17 @@ function handleTranslate() {
             const hasClassName = translateArea.classList.contains('drawerShow');
             if (!hasClassName) {
                 translateArea.classList.add('drawerShow');
+                showMessage('翻译成功', 'success');
             }
         })
     } else {
-        console.log('不存在内容');
+        showMessage('没有可翻译的内容', 'error');
     }
 }
 
+/**
+ * 添加图片
+ */
 function handleAddImg() {
     document.getElementById('imageUpload').click();
 }

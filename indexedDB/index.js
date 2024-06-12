@@ -1,3 +1,5 @@
+import showMessage from "../utils/showMessage.js";
+
 const dbName = 'documentHTML';
 const storeName = 'nodes';
 
@@ -35,8 +37,8 @@ async function addData(data) {
             addRequest = objectStore.add(node);
         })
 
-        addRequest.onsuccess = (event) => console.log('数据添加成功');
-        addRequest.onerror = (event) => console.log('数据添加失败');
+        addRequest.onsuccess = (event) => showMessage('保存成功', 'success');
+        addRequest.onerror = (event) => showMessage('保存失败', 'error');
 
     }
     clearRequest.onerror = (event) => console.log('清除数据时出错:', event.target.error);

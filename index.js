@@ -3,13 +3,16 @@ import Menu from "./baseMenu/Menu.js";
 import baseMenu from "./baseMenu/baseMenu.js";
 import styleMenu from "./styleMenu/styleMenu.js";
 import { ImgNode } from "./Nodes.js/ImgNode.js";
-import { TextNode } from "./Nodes.js/TextNode.js";
 import { addData, getData } from "./indexedDB/index.js";
 import render from "./utils/render.js";
 import extractElmentNodes from "./utils/extractElmentNodes.js";
-import getClassName from "./utils/getClassName.js";
+import addButtonBgcOnSelctionChange from "./utils/addButtonBgcOnSelctionChange.js";
+import resetMenuPosition from "./utils/resetMenuPosition.js";
+import showMessage from "./utils/showMessage.js";
+import { splitSelectedText } from "./utils/splitSeletedText.js";
 
 
+// 初始化菜单组件
 const menu = new Menu();
 
 const editorElm = document.querySelector(".editor");
@@ -85,20 +88,23 @@ function handleMouseup(event) {
 }
 
 async function handleClick(event) {
+    // 根据菜单状态显示菜单
     const { showFloatMenuOnClick } = menu.menuStatus;
     if (showFloatMenuOnClick) {
-        menu.showFloatMenu(showEventMenu, { floatMenuCls: 'float-menu' });
-
-        const floatMenuElm = menu.getFloatElm();
-        const menuElms = floatMenuElm.children;
+        const floatMenuElm = menu.showFloatMenu(showEventMenu, { floatMenuCls: 'float-menu' });
+        // 设置菜单位置
+        menu.setMenuElmPosition(floatMenuElm, event);
+        resetMenuPosition(floatMenuElm);
+        addButtonBgcOnSelctionChange(floatMenuElm);
 
         // 解除禁用
+        const menuElms = floatMenuElm.children;
         const clipboardText = await navigator.clipboard.readText();
         Array.from(menuElms).filter(menuElm => {
             const type = menuElm.getAttribute('data-type') === "paste";
             const imgtype = menuElm.getAttribute('data-type') === "addImg";
             if (!type && !imgtype) {
-                menuElm.classList.remove('disabled', 'disabledBgc');
+                menuElm.classList.remove('disabled');
             } else {
                 clipboardText ? menuElm.classList.remove('disabled') : menuElm.classList.add('disabled');
             }
@@ -112,6 +118,16 @@ function handleSelectionChange(event) {
     const selectionText = SelectionTool.getSelectionText();
     if (!selectionText) {
         menu.hideFloatMenu();
+    }
+    window.textNodes = splitSelectedText();
+    console.log(window.textNodes);
+
+    const navFloatMneu = document.querySelector('.navFloat-menu');
+    const floatMenuElm = document.querySelector('.float-menu');
+
+    addButtonBgcOnSelctionChange(navFloatMneu);
+    if (floatMenuElm) {
+        addButtonBgcOnSelctionChange(floatMenuElm);
     }
 }
 
@@ -127,21 +143,26 @@ function handleDragstart(event) {
 function handleDragend(event) {
     const { shouldShowMenuOnDragend } = menu.menuStatus;
     if (shouldShowMenuOnDragend) {
-        menu.showFloatMenu(showEventMenu, { floatMenuCls: 'float-menu' });
+        const floatMenuElm = menu.showFloatMenu(showEventMenu, { floatMenuCls: 'float-menu' });
+        menu.setMenuElmPosition(floatMenuElm, event);
+        resetMenuPosition(floatMenuElm);
     }
 }
 
 async function handleContextmenu(event) {
+    event.preventDefault();
     const rects = SelectionTool.getBoundingClientRect();
     const isMouseInRects = event.pageX >= rects.left && event.pageX <= rects.right && event.pageY >= rects.top && event.pageY <= rects.bottom;
+    // 鼠标在选区内显示
     if (isMouseInRects) {
         menu.hideFloatMenu();
-        menu.showFloatMenu(baseMenu, { floatMenuCls: 'float-menu', className: 'columnshow' });
+        const floatMenuElm = menu.showFloatMenu(baseMenu, { floatMenuCls: 'float-menu', className: 'columnshow' });
+        menu.setMenuElmPositionOnContextmneu(floatMenuElm, event);
     }
-    event.preventDefault();
-    menu.showFloatMenu(baseMenu, { floatMenuCls: 'float-menu', className: 'columnshow' });
+    // 鼠标在选区外显示
+    const floatMenuElm = menu.showFloatMenu(baseMenu, { floatMenuCls: 'float-menu', className: 'columnshow' });
+    menu.setMenuElmPositionOnContextmneu(floatMenuElm, event);
     // 禁用部分按钮
-    const floatMenuElm = menu.getFloatElm();
     const menuElms = floatMenuElm.children;
     const clipboardText = await navigator.clipboard.readText();
     if (SelectionTool.getSelectionText().trim().length <= 0) {
@@ -149,7 +170,7 @@ async function handleContextmenu(event) {
             const type = menuElm.getAttribute('data-type') === "paste";
             const imgtype = menuElm.getAttribute('data-type') === "addImg";
             if (!type && !imgtype) {
-                menuElm.classList.add('disabled', 'disabledBgc');
+                menuElm.classList.add('disabled');
             } else {
                 clipboardText ? menuElm.classList.remove('disabled') : menuElm.classList.add('disabled');
             }
@@ -173,6 +194,7 @@ function handleImageUpload(event) {
         range.deleteContents();
         range.insertNode(imgNode.renderImage());
         SelectionTool.updatePointPosition(range);
+        showMessage('插图成功', 'success');
     });
 
     reader.readAsDataURL(file);
@@ -213,19 +235,4 @@ async function handleLoaded() {
  */
 function handleCloseDrawer() {
     translateArea.classList.remove('drawerShow');
-}
-
-/**
- * 根据选区文字样式添加按钮背景
- * @param {*} menuItems 
- * @param {*} floatMenuCls 
- */
-function addButtonBgcOnClick(menuItems, floatMenuCls = null) {
-    const classList = getClassName(floatMenuCls);
-    Array.from(menuItems).forEach((item) => {
-        const type = item.getAttribute('data-type');
-        if (classList[type] && !item.classList.contains('addBgc')) {
-            item.classList.add('addBgc');
-        }
-    })
 }
