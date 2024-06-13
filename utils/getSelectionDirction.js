@@ -31,7 +31,13 @@ function getSelectionDirction() {
     }
 
     if (anchorNode === focusNode) {
-        return anchorOffset < focusOffset ? 'backward' : 'forword';
+        const maxOffset = Math.abs(anchorOffset - focusOffset);
+
+        if (maxOffset <= 46) {
+            return 'forword';
+        } else {
+            return anchorOffset < focusOffset ? 'backward' : 'forword';
+        }
     }
 
     return compareBoundaryPoints(anchorNode, focusNode) < 0 ? 'backward' : 'forword';
