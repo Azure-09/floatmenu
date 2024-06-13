@@ -32,7 +32,7 @@ function getSelectionDirction() {
 
     if (anchorNode === focusNode) {
         const maxOffset = Math.abs(anchorOffset - focusOffset);
-
+        // 选择单行文本则显示在上方
         if (maxOffset <= 46) {
             return 'forword';
         } else {
