@@ -24,7 +24,6 @@ class Menu {
     // 设置菜单位置
     setMenuElmPosition(menuElm, event) {
         const dirction = getSelectionDirction();
-        console.log(dirction);
         const rect = SelectionTool.getBoundingClientRect();
         const menuElmWidth = menuElm.offsetWidth / 2;
 

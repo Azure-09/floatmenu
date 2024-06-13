@@ -1,5 +1,6 @@
 import SelectionTool from "./SelectionTool.js";
 import { TextNode } from "../Nodes.js/TextNode.js";
+import { ImgNode } from "../Nodes.js/ImgNode.js";
 
 /**
  * 分割选区文本
@@ -41,7 +42,7 @@ function getSelectedHtml() {
 }
 
 /**
- * 处理range的节点
+ * 处理range相同节点
  */
 function handleNodeWithNoElement(range, documentFragment) {
     // 需要用到的API
@@ -99,8 +100,13 @@ function extractTextAndElementNodes(containerElement) {
         if (node.nodeType === Node.TEXT_NODE) {
             textNodes.push(new TextNode(node.textContent));
         } else if (node.nodeType === Node.ELEMENT_NODE) {
-            const newNode = new TextNode(node.textContent, [...node.classList]);
-            textNodes.push(newNode);
+            if (node.tagName.toLowerCase() === 'span') {
+                const textNode = new TextNode(node.textContent, [...node.classList]);
+                textNodes.push(textNode);
+            } else if (node.tagName.toLowerCase() === 'img') {
+                const imgNode = new ImgNode(node.src);
+                textNodes.push(imgNode);
+            }
         }
     })
     return textNodes;

@@ -15,11 +15,14 @@ const classNameToIndexMap = {
  */
 function addStyleClassName() {
     const textNodes = window.textNodes;
+    console.log(textNodes);
 
     // 将HTML插入到临时div中并收集所有类名
     let classList = new Set();
     textNodes.forEach(node => {
-        node.classNames.forEach(className => classList.add(className));
+        if (node.nodeType === 'text') {
+            node.classNames.forEach(className => classList.add(className));
+        }
     })
     return classList;
 }
