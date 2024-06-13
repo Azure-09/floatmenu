@@ -28,10 +28,14 @@ export class TextNode {
 
     // 生成span元素
     renderElement() {
-        const element = document.createElement('span');
-        element.textContent = this.textContent;
-        this.classNames.forEach(className => element.classList.add(className));
-        return element;
+        if (this.classNames.length > 0) {
+            const element = document.createElement('span');
+            element.textContent = this.textContent;
+            this.classNames.forEach(className => element.classList.add(className));
+            return element;
+        } else {
+            return document.createTextNode(this.textContent);
+        }
     }
 
     serialize() {

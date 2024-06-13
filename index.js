@@ -120,7 +120,6 @@ function handleSelectionChange(event) {
         menu.hideFloatMenu();
     }
     window.textNodes = splitSelectedText();
-    console.log(window.textNodes);
 
     const navFloatMneu = document.querySelector('.navFloat-menu');
     const floatMenuElm = document.querySelector('.float-menu');

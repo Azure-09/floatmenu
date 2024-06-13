@@ -1,5 +1,4 @@
 import SelectionTool from "../utils/SelectionTool.js"
-import { splitSelectedText } from "../utils/splitSeletedText.js";
 
 
 const styleMenu = [
@@ -40,10 +39,45 @@ function addOrRemoveClassName(className) {
             fragment.appendChild(textNode.renderElement());
         });
     }
-    // 清除原有内容并插入新内容
-    range.deleteContents();
-    range.insertNode(fragment);
+
+    const { commonAncestorContainer } = range;
+    const parentNode = commonAncestorContainer.parentNode;
+
+    if (parentNode.tagName.toLowerCase() === 'span') {
+        processSpan(parentNode, range, fragment);
+    } else {
+        // 对非span元素的处理，保持原有逻辑
+        range.deleteContents();
+        range.insertNode(fragment);
+    }
 }
+
+/**
+ * 当文本的祖先元素为样式元素，分割文本
+ * @param {*} parentNode 
+ * @param {*} range 
+ * @param {*} fragment 
+ */
+const processSpan = (parentNode, range, fragment) => {
+    const classList = [...parentNode.classList];
+    const textContent = parentNode.textContent;
+    const [headTextContent, footerTextContent] = textContent.split(range.toString());
+
+    // 创建新的span元素
+    const createSpan = (content) => {
+        const span = document.createElement('span');
+        span.classList.add(...classList);
+        span.textContent = content;
+        return span;
+    };
+
+    const fragmentAfterSplit = document.createDocumentFragment();
+    fragmentAfterSplit.appendChild(createSpan(headTextContent));
+    fragmentAfterSplit.appendChild(fragment);
+    fragmentAfterSplit.appendChild(createSpan(footerTextContent));
+
+    parentNode.replaceWith(fragmentAfterSplit);
+};
 
 
 export default styleMenu;
