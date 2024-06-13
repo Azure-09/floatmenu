@@ -25,12 +25,13 @@ function getSelectionDirction() {
         return
     }
     const { isCollapsed, anchorNode, focusNode, anchorOffset, focusOffset } = selection;
+
     if (isCollapsed) {
         return 'origin';
     }
 
     if (anchorNode === focusNode) {
-        return anchorOffset > focusOffset ? 'backward' : 'forword';
+        return anchorOffset < focusOffset ? 'backward' : 'forword';
     }
 
     return compareBoundaryPoints(anchorNode, focusNode) < 0 ? 'backward' : 'forword';
