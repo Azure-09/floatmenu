@@ -31,7 +31,13 @@ export class TextNode {
         if (this.classNames.length > 0) {
             const element = document.createElement('span');
             element.textContent = this.textContent;
-            this.classNames.forEach(className => element.classList.add(className));
+
+            if (!window.allHaveTextDecoraction) {
+                this.classNames.forEach(className => element.classList.add(className));
+            } else {
+                element.classList.add('underlineAndLinethrough');
+            }
+            
             return element;
         } else {
             return document.createTextNode(this.textContent);

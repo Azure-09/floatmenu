@@ -14,12 +14,11 @@ const classNameToIndexMap = {
  * @returns 
  */
 function addStyleClassName() {
-    const textNodes = window.textNodes;
-    console.log(textNodes);
+    const nodeSet = window.nodeSet;
 
     // 将HTML插入到临时div中并收集所有类名
     let classList = new Set();
-    textNodes.forEach(node => {
+    nodeSet.forEach(node => {
         if (node.nodeType === 'text') {
             node.classNames.forEach(className => classList.add(className));
         }
@@ -38,6 +37,7 @@ function addButtonBgcOnSelctionChange(floatMenuElm) {
     // 清除导航菜单样式
     menuItems.forEach(menuElm => menuElm.classList.remove('addBgc'));
 
+    // 添加样式
     if (classList.size) {
         classList.forEach(className => {
             if (classNameToIndexMap.hasOwnProperty(className)) {
@@ -45,6 +45,15 @@ function addButtonBgcOnSelctionChange(floatMenuElm) {
                 menuItems[index].classList.add('addBgc');
             }
         });
+    }
+
+    if (classList.has('underlineAndLinethrough')) {
+        menuItems.forEach(item => {
+            const shouldAddBgcItem = item.dataset.type === 'underline' || item.dataset.type === 'lineThrough';
+            if (shouldAddBgcItem) {
+                item.classList.add('addBgcWhenHasTextdecoration');
+            }
+        })
     }
 
 }

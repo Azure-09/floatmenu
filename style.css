@@ -94,6 +94,10 @@ body {
     background-color: lightgrey;
 }
 
+.addBgcWhenHasTextdecoration {
+    background-color: lightgrey;
+}
+
 .nav {
     position: fixed;
     top: 0;
@@ -175,6 +179,10 @@ body {
 .closeDrawer {
     cursor: pointer;
     font-size: 18px;
+}
+
+.underlineAndLinethrough{
+    text-decoration: underline line-through;
 }
 
 

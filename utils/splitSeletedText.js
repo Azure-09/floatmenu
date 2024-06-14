@@ -19,13 +19,14 @@ function splitSelectedText() {
 }
 
 /**
- * 处理文本节点
+ * 处理选区文本节点
  * @returns 
  */
 function getSelectedHtml() {
-    let selectedHtml = '';
+    let selectedHtml;
     const text = SelectionTool.getSelectionText();
-    if (text.length > 0) {
+
+    if (text.trim().length > 0) {
         const range = SelectionTool.getRangeAt();
         let documentFragment = range.cloneContents();// 克隆选区内容到一个新的文档片段中
 
@@ -37,12 +38,11 @@ function getSelectedHtml() {
         selectionContainer.appendChild(processedFragment);
         selectedHtml = selectionContainer.innerHTML;
     }
-
     return selectedHtml;
 }
 
 /**
- * 处理range相同节点
+ * 处理无直接包裹元素的选中文本问题
  */
 function handleNodeWithNoElement(range, documentFragment) {
     // 需要用到的API
@@ -60,24 +60,22 @@ function handleNodeWithNoElement(range, documentFragment) {
         // 遍历选区的所有节点
         Array.from(documentFragment.childNodes).forEach(node => {
             // 避免继承editor和root的类名
-            let parentNode = commonAncestorContainer.parentNode;
-            let editorAncestor = parentNode === document.querySelector('.editor');
+            let ancestor;
+            if (commonAncestorContainer.nodeType === Node.ELEMENT_NODE) {
+                ancestor = commonAncestorContainer;
+            } else if (commonAncestorContainer.nodeType === Node.TEXT_NODE) {
+                ancestor = commonAncestorContainer.parentNode;
+            }
+            // 祖先元素是否是editor
+            let editorAncestor = ancestor.hasAttribute('class') && ancestor.classList.contains('editor');
 
             if (editorAncestor) {  // 如果直接在.editor下，直接添加节点
                 fragment.appendChild(node);
             } else {
                 // 否则创建<span>并添加相应类名
                 const span = document.createElement('span');
-                // 查找除editor之外的父元素，获取类名
-                let findEditor = false;
-                while (!findEditor) {
-                    if (parentNode.classList) {
-                        span.classList.add(...parentNode.classList);
-                    }
-                    parentNode = parentNode.parentNode;
-                    if (parentNode === document.querySelector('.editor')) {
-                        findEditor = true;
-                    }
+                if (ancestor.hasAttribute('class')) {
+                    span.classList.add(...ancestor.classList);
                 }
                 span.appendChild(node);
                 fragment.appendChild(span);
