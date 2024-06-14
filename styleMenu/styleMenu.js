@@ -1,5 +1,4 @@
 import SelectionTool from "../utils/SelectionTool.js";
-import allHaveTextDecoraction from "../utils/allHaveTextDecoraction.js";
 
 
 const styleMenu = [
@@ -11,6 +10,7 @@ const styleMenu = [
     { type: 'highlightShow', text: '高亮显示', onClick: () => addOrRemoveClassName('bg_font') }
 ]
 
+const underlineAndLinethrough = 'underlineAndLinethrough';
 
 function addOrRemoveClassName(className) {
     const nodeSet = window.nodeSet;
@@ -26,65 +26,48 @@ function addOrRemoveClassName(className) {
             }
         })
 
-        // 确定所有选中文本节点是否都有某个类
-        const allHaveClassName = textNodes.every(node => {
-            return node.hasClassName(className);
-        })
 
-        // 选区文本是否有text-decoration样式
-        const underline = event.target.dataset.type === 'underline' || event.target.dataset.type === 'lineThrough';
-        if (underline) {
-            window.allHaveTextDecoraction = allHaveTextDecoraction(event, textNodes);
-        }
-
-        // 选区文本是否有underlineAndLinethrough样式
-        const underlineAndLinethrough = textNodes.every(textNodes => {
-            return textNodes.hasClassName('underlineAndLinethrough');
-        })
+        // 都有特定类
+        const allHaveClassName = allHaveSomeClassName(textNodes, className);
+        // 都有下划线
+        const allHaveUnderline = allHaveSomeClassName(textNodes, 'underline_font');
+        // 都有删除线
+        const allHaveLinethrough = allHaveSomeClassName(textNodes, 'linethrough_font');
+        // 都有underlineAndLinethrough样式
+        const allHaveUnderlineAndLinethrough = allHaveSomeClassName(textNodes, underlineAndLinethrough);
 
 
+
+        const eventType = event.target.dataset.type;
         // 根据当前状态决定添加还是移除类
-        if (!allHaveClassName) {  // 不存在某个类（underLineAndLinethrough)
-            if (event.target.classList.contains('addBgc')) return;
-
+        if (!allHaveClassName) {
             event.target.classList.add('addBgc');
-            // 检查是否不需要处理下划线和删除线
-            if (!underlineAndLinethrough) {
-                textNodes.forEach(textNodes => textNodes.addClassName(className));
-            } else {
-                const eventType = event.target.dataset.type;
-                let siblingSelector, targetClass;
-
-                // 根据类型决定要移除的背景色目标及添加的新类名
-                if (eventType === 'underline') {
-                    siblingSelector = 'nextSibling';
-                    targetClass = 'addBgcWhenHasTextdecoration'
-                    textNodes.forEach(textNode => {
-                        textNode.addClassName('linethrough_font');
-                        textNode.removeClassName('underlineAndLinethrough');
-                    })
-                } else if (eventType === 'lineThrough') {
-                    siblingSelector = 'previousSibling';
-                    targetClass = 'addBgcWhenHasTextdecoration'
-                    textNodes.forEach(textNode => {
-                        textNode.addClassName('underline_font');
-                        textNode.removeClassName('underlineAndLinethrough');
-                    });
-                }
-
-                // 移除指定元素的背景色类
-                if (siblingSelector && targetClass) {
-                    event.target.classList.remove(targetClass);
-                    event.target[siblingSelector].classList.remove(targetClass);
-                }
-
-            }
-
+            toggleTextDecoration(eventType, textNodes, 'addClassName', className);
         } else {
             event.target.classList.remove('addBgc');
-            textNodes.forEach(textNodes => textNodes.removeClassName(className));
-
+            toggleTextDecoration(eventType, textNodes, 'removeClassName', className);
         }
+
+
+
+        /**
+         * 处理textDecoration被覆盖的问题
+         */
+        // 检查是否需要处理下划线和删除线
+        // 添加underlineAndLinethrough类
+        const addTextDecoration = allHaveUnderline && eventType === 'lineThrough' || allHaveLinethrough && eventType === 'underline';
+        if (addTextDecoration) {
+            textNodes.forEach(textNode => textNode.addClassName(underlineAndLinethrough));
+        };
+
+        // 移除underlineAndLinethrough类
+        if (allHaveUnderlineAndLinethrough) {
+            const removeTextDecoration = eventType === 'underline' || eventType === 'lineThrough';
+            if (removeTextDecoration) {
+                textNodes.forEach(textNode => textNode.removeClassName(underlineAndLinethrough));
+            }
+        }
+
 
 
         // 渲染元素
@@ -95,6 +78,7 @@ function addOrRemoveClassName(className) {
                 fragment.appendChild(node.renderImage());
             }
         })
+
 
 
         let ancestor = range.commonAncestorContainer;
@@ -151,5 +135,23 @@ const processSpan = (ancestor, range, fragment) => {
     sel.addRange(newRange);
 };
 
+
+// 是否都含有某个类
+function allHaveSomeClassName(textNodes, className) {
+    return textNodes.every(textNode => textNode.hasClassName(className));
+}
+
+// 处理文本中部分存在textdecortion的文本
+function toggleTextDecoration(eventType, textNodes, classType, className) {
+    textNodes.forEach(textNode => {
+        // 根据某个文本元素是否存在textdecoration属性添加underlineAndLinethrough类
+        const hasTextDecoration = textNode.hasClassName('underline_font') && eventType === 'lineThrough' || textNode.hasClassName('linethrough_font') && eventType === 'underline';
+        if (hasTextDecoration) {
+            textNode[classType](underlineAndLinethrough);
+        }
+
+        textNode[classType](className);
+    });
+}
 
 export default styleMenu;

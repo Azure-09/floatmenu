@@ -47,15 +47,6 @@ function addButtonBgcOnSelctionChange(floatMenuElm) {
         });
     }
 
-    if (classList.has('underlineAndLinethrough')) {
-        menuItems.forEach(item => {
-            const shouldAddBgcItem = item.dataset.type === 'underline' || item.dataset.type === 'lineThrough';
-            if (shouldAddBgcItem) {
-                item.classList.add('addBgcWhenHasTextdecoration');
-            }
-        })
-    }
-
 }
 
 export default addButtonBgcOnSelctionChange;
