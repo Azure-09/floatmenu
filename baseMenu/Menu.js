@@ -56,7 +56,7 @@ class Menu {
                 const itemElm = new MenuItem({
                     menuItem,
                     onClick: () => {
-                        menuItems.length === 5 ? this.hideFloatMenu() : null
+                        menuItems.length === 5 ? this.hideFloatMenu() : null;
                         menuItem.onClick();
                     },
 
@@ -99,6 +99,24 @@ class Menu {
         return menuElm.classList.contains('show');
     }
 
+    // 禁用菜单选项
+    disableMneu() {
+        const navFloatMneu = this.getFloatElm('navFloat-menu');
+
+        const selectionText = SelectionTool.getSelectionText();
+        if (!selectionText) {
+            Array.from(navFloatMneu.children).forEach(item => {
+                item.classList.add('disabled');
+            })
+        } else {
+            Array.from(navFloatMneu.children).forEach(item => {
+                item.classList.remove('disabled');
+            })
+        }
+    }
+
+    // 解除菜单选项
+    
 }
 
 

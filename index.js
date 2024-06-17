@@ -2,14 +2,15 @@ import SelectionTool from "./utils/SelectionTool.js";
 import Menu from "./baseMenu/Menu.js";
 import baseMenu from "./baseMenu/baseMenu.js";
 import styleMenu from "./styleMenu/styleMenu.js";
-import { ImgNode } from "./Nodes.js/ImgNode.js";
+import ImgNode from "./Nodes.js/ImgNode.js";
 import { addData, getData } from "./indexedDB/index.js";
 import render from "./utils/render.js";
 import extractElmentNodes from "./utils/extractElmentNodes.js";
 import addButtonBgcOnSelctionChange from "./utils/addButtonBgcOnSelctionChange.js";
 import resetMenuPosition from "./utils/resetMenuPosition.js";
 import showMessage from "./utils/showMessage.js";
-import { splitSelectedText } from "./utils/splitSeletedText.js";
+import splitSelectedText from "./utils/splitSeletedText.js";
+import MenuItem from "./baseMenu/MenuItem.js";
 
 
 // 初始化菜单组件
@@ -100,30 +101,30 @@ async function handleClick(event) {
         // 解除禁用
         const menuElms = floatMenuElm.children;
         const clipboardText = await navigator.clipboard.readText();
-        Array.from(menuElms).filter(menuElm => {
-            const type = menuElm.getAttribute('data-type') === "paste";
-            const imgtype = menuElm.getAttribute('data-type') === "addImg";
-            if (!type && !imgtype) {
-                menuElm.classList.remove('disabled');
-            } else {
-                clipboardText ? menuElm.classList.remove('disabled') : menuElm.classList.add('disabled');
-            }
-        })
+        MenuItem.enableButtons(menuElms, clipboardText);
     } else {
         menu.hideFloatMenu();
     }
 }
 
 function handleSelectionChange(event) {
+    const navFloatMneu = menu.getFloatElm('navFloat-menu');
+    const floatMenuElm = menu.getFloatElm();
+
     const selectionText = SelectionTool.getSelectionText();
     if (!selectionText) {
         menu.hideFloatMenu();
+        Array.from(navFloatMneu.children).forEach(item => {
+            item.classList.add('disabled');
+        })
+    } else {
+        Array.from(navFloatMneu.children).forEach(item => {
+            item.classList.remove('disabled');
+        })
     }
+
     window.nodeSet = splitSelectedText();
-
-    const navFloatMneu = document.querySelector('.navFloat-menu');
-    const floatMenuElm = document.querySelector('.float-menu');
-
+    // 根据选区中的文本样式给相应按钮高亮
     addButtonBgcOnSelctionChange(navFloatMneu);
     if (floatMenuElm) {
         addButtonBgcOnSelctionChange(floatMenuElm);
@@ -164,16 +165,8 @@ async function handleContextmenu(event) {
     // 禁用部分按钮
     const menuElms = floatMenuElm.children;
     const clipboardText = await navigator.clipboard.readText();
-    if (SelectionTool.getSelectionText().trim().length <= 0) {
-        Array.from(menuElms).filter(menuElm => {
-            const type = menuElm.getAttribute('data-type') === "paste";
-            const imgtype = menuElm.getAttribute('data-type') === "addImg";
-            if (!type && !imgtype) {
-                menuElm.classList.add('disabled');
-            } else {
-                clipboardText ? menuElm.classList.remove('disabled') : menuElm.classList.add('disabled');
-            }
-        })
+    if (!SelectionTool.getSelectionText()) {
+        MenuItem.disableButtons(menuElms, clipboardText);
     }
 }
 
@@ -227,6 +220,9 @@ async function handleLoaded() {
     if (fragment.childNodes.length > 0) {
         editorElm.replaceChildren(fragment);
     }
+
+    // 禁用导航栏菜单
+    menu.disableMneu();
 }
 
 /**

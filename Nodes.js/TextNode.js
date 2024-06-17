@@ -1,4 +1,4 @@
-export class TextNode {
+class TextNode {
     nodeType = 'text';
 
     constructor(textContent, classNames = []) {
@@ -42,3 +42,5 @@ export class TextNode {
         return { nodeType: 'text', textContent: this.textContent, classNames: this.classNames };
     }
 }
+
+export default TextNode;

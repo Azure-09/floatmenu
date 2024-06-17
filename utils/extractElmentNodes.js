@@ -1,5 +1,5 @@
-import { TextNode } from "../Nodes.js/TextNode.js";
-import { ImgNode } from "../Nodes.js/ImgNode.js";
+import TextNode from "../Nodes.js/TextNode.js";
+import ImgNode from "../Nodes.js/ImgNode.js";
 /**
  * 提取元素节点信息
  * @param {*} containerElement 

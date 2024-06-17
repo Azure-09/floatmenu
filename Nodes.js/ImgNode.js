@@ -1,4 +1,4 @@
-export class ImgNode {
+class ImgNode {
     nodeType = 'img';
 
     constructor(src) {
@@ -16,3 +16,5 @@ export class ImgNode {
         return { nodeType: "img", src: this.src };
     }
 }
+
+export default ImgNode;

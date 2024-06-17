@@ -1,6 +1,6 @@
 import SelectionTool from "./SelectionTool.js";
-import { TextNode } from "../Nodes.js/TextNode.js";
-import { ImgNode } from "../Nodes.js/ImgNode.js";
+import TextNode from "../Nodes.js/TextNode.js";
+import ImgNode from "../Nodes.js/ImgNode.js";
 
 /**
  * 分割选区文本
@@ -55,7 +55,7 @@ function handleNodeWithNoElement(range, documentFragment) {
 
     // 如果节点没有返回元素，则手动添加元素和类名
     if (isTextNode && hasCommonAncestor) {
-        console.log('处理符合条件的节点内容');
+        // console.log('处理符合条件的节点内容');
         const fragment = document.createDocumentFragment();
         // 遍历选区的所有节点
         Array.from(documentFragment.childNodes).forEach(node => {
@@ -110,4 +110,4 @@ function extractTextAndElementNodes(containerElement) {
     return textNodes;
 }
 
-export { splitSelectedText }
+export default splitSelectedText;
