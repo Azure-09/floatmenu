@@ -96,6 +96,9 @@ function addOrRemoveClassName(className) {
         }
     }
 
+    // 合并相邻的文本节点并清除空文本节点
+    const editorElm = document.querySelector('.editor');
+    editorElm.normalize();
 }
 
 
@@ -121,9 +124,14 @@ const processSpan = (ancestor, range, fragment) => {
     // 依次将分割的文本节点插入文档
     const fragmentAfterSplit = document.createDocumentFragment();
     const text = fragment.firstChild;
-    fragmentAfterSplit.appendChild(createSpan(headTextContent));
+    if (headTextContent) {
+        fragmentAfterSplit.appendChild(createSpan(headTextContent));
+    }
     fragmentAfterSplit.appendChild(text);
-    fragmentAfterSplit.appendChild(createSpan(footerTextContent));
+    if (footerTextContent) {
+        fragmentAfterSplit.appendChild(createSpan(footerTextContent));
+    }
+
 
     // 替换祖先元素
     ancestor.replaceWith(fragmentAfterSplit);
