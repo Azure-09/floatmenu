@@ -21,7 +21,7 @@ function extractElmentNodes(containerElement) {
             }
         }
     })
-    console.log(documentHTML);
+    // console.log(documentHTML);
     return documentHTML;
 }
 

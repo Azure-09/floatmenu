@@ -22,7 +22,7 @@ function compareBoundaryPoints(anchorNode, focusNode) {
 function getSelectionDirction() {
     const selection = SelectionTool.getSelection();
     if (!selection.rangeCount) {
-        return
+        return;
     }
     const { isCollapsed, anchorNode, focusNode, anchorOffset, focusOffset } = selection;
 

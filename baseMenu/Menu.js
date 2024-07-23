@@ -11,7 +11,6 @@ class Menu {
     menuStatus = {
         hasSelectionContentOnMousedown: false,
         showFloatMenuOnClick: false,
-        isDragOnDragStart: false,
         shouldShowMenuOnDragend: false,
     };
 

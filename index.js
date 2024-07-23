@@ -85,7 +85,6 @@ function handleMouseup(event) {
     const { hasSelectionContentOnMousedown } = menu.menuStatus;
     const selectionText = SelectionTool.getSelectionText();
     menu.menuStatus.showFloatMenuOnClick = !hasSelectionContentOnMousedown && selectionText.length !== 0;
-    menu.menuStatus.isDragOnDragStart = false;
 }
 
 async function handleClick(event) {
